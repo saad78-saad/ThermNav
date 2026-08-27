@@ -1047,14 +1047,14 @@ export default function AutodeskBuildingViewer({
     }
 
     // =========================================================================
-    // 💨 4. ANIMATED AIRFLOW SUPPLY PARTICLES (INSIDE DUCTS & SLABS)
+    // 💨 4. ANIMATED AIRFLOW SUPPLY PARTICLES (INSIDE DUCTS & SLABS - CUT ON EMPTY PLOT)
     // =========================================================================
     const particleCount = 140;
     const particleGeo = new THREE.SphereGeometry(0.2, 6, 6);
     const particleMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.9 });
     particleMeshGroup = new THREE.Group();
 
-    if (showAirflowParticles) {
+    if (showAirflowParticles && !isEmptyPlot) {
       for (let p = 0; p < particleCount; p++) {
         const pMesh = new THREE.Mesh(particleGeo, particleMat);
         const flIdx = Math.floor(Math.random() * numFloors);
@@ -1380,8 +1380,8 @@ export default function AutodeskBuildingViewer({
       animId = requestAnimationFrame(animate);
 
       try {
-        // Animate flowing airflow particles
-        if (showAirflowParticles && particleMeshGroup && particleMeshGroup.children) {
+        // Animate flowing airflow particles (only when building exists)
+        if (showAirflowParticles && !isEmptyPlot && particleMeshGroup && particleMeshGroup.children) {
           particleMeshGroup.children.forEach((p) => {
             p.position.x += p.userData.speed * simSpeed;
             if (p.position.x > 7.0) {
