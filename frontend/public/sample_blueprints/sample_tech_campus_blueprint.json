@@ -1,0 +1,35 @@
+{
+  "project_name": "Silicon Alley Tech & Innovation Hub",
+  "building_type": "Commercial High-Tech Office",
+  "location": {
+    "city": "New York, NY",
+    "latitude": 40.7418,
+    "longitude": -73.9893
+  },
+  "geometry": {
+    "num_floors": 6,
+    "floor_area_m2": 18500,
+    "floor_height_m": 4.2,
+    "aspect_ratio": 1.2,
+    "window_wall_ratio": 0.58
+  },
+  "envelope": {
+    "wall_r_value": 20,
+    "glazing_u_value": 0.32,
+    "solar_heat_gain_coefficient": 0.28,
+    "thermal_capacitance_kwh_c": 920
+  },
+  "hvac_plant": {
+    "system_type": "Underfloor Air Distribution (UFAD) Plenums",
+    "chiller_capacity_kw": 1600,
+    "chiller_cop": 6.2,
+    "economizer_type": "Smart Enthalpy Free-Cooling",
+    "pre_cooling_aggression": 1.0,
+    "duct_distribution": "UFAD Pressurized Floor Plenums"
+  },
+  "occupancy": {
+    "peak_occupants": 1850,
+    "base_occupants": 600,
+    "diversity_factor": 0.90
+  }
+}

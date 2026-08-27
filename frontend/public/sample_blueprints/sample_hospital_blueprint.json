@@ -1,0 +1,35 @@
+{
+  "project_name": "Manhattan Health & Research Hospital",
+  "building_type": "Healthcare / Life Sciences",
+  "location": {
+    "city": "New York, NY",
+    "latitude": 40.7061,
+    "longitude": -74.0092
+  },
+  "geometry": {
+    "num_floors": 12,
+    "floor_area_m2": 36000,
+    "floor_height_m": 3.8,
+    "aspect_ratio": 1.4,
+    "window_wall_ratio": 0.42
+  },
+  "envelope": {
+    "wall_r_value": 24,
+    "glazing_u_value": 0.28,
+    "solar_heat_gain_coefficient": 0.25,
+    "thermal_capacitance_kwh_c": 1850
+  },
+  "hvac_plant": {
+    "system_type": "Dual-Duct 100% Outdoor Air (HEPA / Cleanroom)",
+    "chiller_capacity_kw": 3400,
+    "chiller_cop": 5.8,
+    "economizer_type": "Differential Enthalpy Integrated",
+    "pre_cooling_aggression": 1.25,
+    "duct_distribution": "Overhead Heavy Galvanized Risers"
+  },
+  "occupancy": {
+    "peak_occupants": 3200,
+    "base_occupants": 1200,
+    "diversity_factor": 0.85
+  }
+}

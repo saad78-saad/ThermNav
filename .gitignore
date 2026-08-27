@@ -1,0 +1,31 @@
+# Environment & Secrets
+.env
+.env*.local
+*.key
+*.pem
+
+# Dependencies
+node_modules/
+*.zip
+backend/__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo

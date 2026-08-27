@@ -1,0 +1,35 @@
+{
+  "project_name": "Hudson Yards Financial Highrise Tower",
+  "building_type": "Skyscraper / Financial Core",
+  "location": {
+    "city": "Manhattan Canyon, NY",
+    "latitude": 40.7538,
+    "longitude": -74.0022
+  },
+  "geometry": {
+    "num_floors": 18,
+    "floor_area_m2": 52000,
+    "floor_height_m": 3.6,
+    "aspect_ratio": 1.6,
+    "window_wall_ratio": 0.65
+  },
+  "envelope": {
+    "wall_r_value": 28,
+    "glazing_u_value": 0.22,
+    "solar_heat_gain_coefficient": 0.20,
+    "thermal_capacitance_kwh_c": 2800
+  },
+  "hvac_plant": {
+    "system_type": "Multi-Zone VAV with Active Chilled Beams",
+    "chiller_capacity_kw": 4800,
+    "chiller_cop": 6.5,
+    "economizer_type": "Differential Enthalpy Integrated with FortyGuard",
+    "pre_cooling_aggression": 1.4,
+    "duct_distribution": "High-Pressure Dual Risers with VAV Terminal Units"
+  },
+  "occupancy": {
+    "peak_occupants": 4500,
+    "base_occupants": 1800,
+    "diversity_factor": 0.92
+  }
+}

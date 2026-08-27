@@ -1,0 +1,46 @@
+{
+  "project_name": "DOE Commercial Reference: Chicago Loop Medical & Surgery Pavilion",
+  "building_type": "Healthcare / Inpatient Surgery Center",
+  "source_standard": "US Department of Energy (DOE) Reference Commercial Building - ASHRAE 90.1-2022",
+  "location": {
+    "city": "Chicago Loop, IL, USA",
+    "latitude": 41.8781,
+    "longitude": -87.6298,
+    "climate_zone": "ASHRAE Zone 5A (Cold Humid / Lake Breeze Inversion)"
+  },
+  "geometry": {
+    "num_floors": 14,
+    "floor_area_m2": 44800.0,
+    "floor_height_m": 4.1,
+    "aspect_ratio": 1.5,
+    "window_wall_ratio": 0.45,
+    "envelope_thermal_mass_mj_m3k": 2.85
+  },
+  "envelope": {
+    "wall_r_value": 26.5,
+    "glazing_u_value": 0.24,
+    "solar_heat_gain_coefficient": 0.22,
+    "thermal_capacitance_kwh_c": 2950.0
+  },
+  "hvac_plant": {
+    "system_type": "Dual-Duct Variable Air Volume (VAV) with HEPA Filtration & Chilled Beams",
+    "chiller_capacity_kw": 4200.0,
+    "chiller_cop": 6.4,
+    "cooling_tower_type": "Induced Draft Variable Speed Fan",
+    "economizer_type": "Differential Enthalpy Integrated with FortyGuard Boundary Layer Wind",
+    "pre_cooling_aggression": 1.35,
+    "duct_distribution": "Overhead Heavy Galvanized Supply Risers + Dedicated Outdoor Air System (DOAS)"
+  },
+  "occupancy": {
+    "peak_occupants": 3600,
+    "base_occupants": 1400,
+    "diversity_factor": 0.88,
+    "internal_heat_gain_w_m2": 32.5
+  },
+  "conference_facilities": [
+    { "floor": 1, "room": "Main Auditorium & Medical Amphitheater", "capacity": 350 },
+    { "floor": 4, "room": "Surgical Simulation Lab Suites", "capacity": 140 },
+    { "floor": 8, "room": "Clinical Research Conference Center", "capacity": 180 },
+    { "floor": 14, "room": "Sky Executive Boardroom", "capacity": 85 }
+  ]
+}
