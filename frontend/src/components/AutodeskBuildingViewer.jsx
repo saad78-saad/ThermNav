@@ -72,7 +72,7 @@ import {
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Dynamic 24-Hour Surrounding Neighbor Thermal Calculator (Stefan-Boltzmann + Solar Azimuth)
-export const calculateDynamicNeighborThermal = (neighbor, hour = 14, baseAmbient = 34.5) => {
+const calculateDynamicNeighborThermal = (neighbor, hour = 14, baseAmbient = 34.5) => {
   const orient = neighbor.orientation;
   let tempDelta = 0;
   if (orient === 'EAST') {
@@ -124,7 +124,7 @@ export const calculateDynamicNeighborThermal = (neighbor, hour = 14, baseAmbient
 // =========================================================================
 // 🏢 CORPORATE TENANT & CUSTOM HVAC PLANT CATALOG
 // =========================================================================
-export const COMPANY_HVAC_CATALOG = {
+const COMPANY_HVAC_CATALOG = {
   GOOGLE_UFAD: {
     id: 'GOOGLE_UFAD',
     company: 'Google Cloud & AI Labs',

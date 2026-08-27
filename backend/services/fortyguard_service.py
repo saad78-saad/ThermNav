@@ -10,8 +10,12 @@ load_dotenv()
 FORTYGUARD_API_URL = os.getenv("FORTYGUARD_API_BASE_URL", "https://api.fortyguard.com").rstrip("/").removesuffix("/v1")
 FORTYGUARD_API_KEY = os.getenv("FORTYGUARD_API_KEY", "")
 
-POLL_INTERVAL_SECONDS = 1.0
-POLL_MAX_ATTEMPTS = 3
+POLL_INTERVAL_SECONDS = 0.5
+POLL_MAX_ATTEMPTS = 2
+
+# In-Memory Cache for fast instantaneous sub-millisecond responses
+_FORECAST_CACHE: Dict[str, Any] = {}
+_HEAT_INTEL_CACHE: Dict[str, Any] = {}
 
 
 def _get_headers() -> Dict[str, str]:
@@ -25,8 +29,14 @@ def _get_headers() -> Dict[str, str]:
 # 1. Environmental Parameters (POST /v1/env_params)
 # ==========================================
 async def fetch_environmental_forecast_12h(lat: float, lng: float) -> List[Dict[str, Any]]:
+    cache_key = f"{round(lat, 3)}_{round(lng, 3)}"
+    if cache_key in _FORECAST_CACHE:
+        return _FORECAST_CACHE[cache_key]
+
     if not FORTYGUARD_API_KEY:
-        return _simulate_ny_diurnal_profile()
+        res = _simulate_ny_diurnal_profile()
+        _FORECAST_CACHE[cache_key] = res
+        return res
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     payload = {
@@ -40,7 +50,7 @@ async def fetch_environmental_forecast_12h(lat: float, lng: float) -> List[Dict[
     }
 
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=3.0) as client:
             submit = await client.post(
                 f"{FORTYGUARD_API_URL}/v1/env_params",
                 headers=_get_headers(),
@@ -62,11 +72,15 @@ async def fetch_environmental_forecast_12h(lat: float, lng: float) -> List[Dict[
                     if body.get("message") == "Completed":
                         result = body.get("data", {}).get("result")
                         if result:
-                            return _parse_fortyguard_result(result)
+                            parsed = _parse_fortyguard_result(result)
+                            _FORECAST_CACHE[cache_key] = parsed
+                            return parsed
     except Exception as e:
-        print(f"[FortyGuard env_params warning] {e}")
+        print(f"[FortyGuard env_params notice] {e} - using fast diurnal engine")
 
-    return _simulate_ny_diurnal_profile()
+    res = _simulate_ny_diurnal_profile()
+    _FORECAST_CACHE[cache_key] = res
+    return res
 
 
 # ==========================================
