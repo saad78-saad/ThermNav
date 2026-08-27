@@ -608,6 +608,9 @@ export default function AutodeskBuildingViewer({
   const furnitureGroupRef = useRef(null);
   const floorSlabsGroupRef = useRef(null);
   const ductworkGroupRef = useRef(null);
+  const celestialGroupRef = useRef(null);
+  const sunSubGroupRef = useRef(null);
+  const moonSubGroupRef = useRef(null);
 
   const numFloors = 8;
   const floorHeight = 3.2;
@@ -723,72 +726,93 @@ export default function AutodeskBuildingViewer({
     dirLight2.position.set(-30, 20, -20);
     scene.add(dirLight2);
 
-    // ☀️ DYNAMIC CELESTIAL SUN & CORONA (OR CRESCENT MOON AT NIGHT)
-    const isDaytime = selectedHour >= 6 && selectedHour <= 19;
-    const hourAngle = ((selectedHour - 6) / 13) * Math.PI; // 0 at sunrise (East) to PI at sunset (West)
-    const sunX = Math.cos(Math.PI - hourAngle) * 55;
-    const sunY = isDaytime ? Math.max(12, Math.sin(hourAngle) * 52) : -20;
-    const sunZ = Math.sin(hourAngle) * 25 + 15;
-
+    // ☀️ DYNAMIC CELESTIAL GROUP (SUN & MOON)
     const celestialGroup = new THREE.Group();
-    celestialGroup.position.set(sunX, isDaytime ? sunY : 40, isDaytime ? sunZ : -35);
+    celestialGroupRef.current = celestialGroup;
 
-    if (isDaytime) {
-      // Golden / Luminous Sun Core
-      const sunCoreGeo = new THREE.SphereGeometry(3.6, 32, 32);
-      const sunColor = selectedHour <= 8 || selectedHour >= 17 ? 0xf97316 : 0xfef08a;
-      const sunCoreMat = new THREE.MeshBasicMaterial({ color: sunColor });
-      const sunCore = new THREE.Mesh(sunCoreGeo, sunCoreMat);
-      celestialGroup.add(sunCore);
+    // --- SUN SUBGROUP ---
+    const sunSubGroup = new THREE.Group();
+    sunSubGroupRef.current = sunSubGroup;
 
-      // Glowing Solar Corona Halo
-      const coronaGeo = new THREE.SphereGeometry(6.5, 32, 32);
-      const coronaMat = new THREE.MeshBasicMaterial({
-        color: selectedHour <= 8 || selectedHour >= 17 ? 0xfb923c : 0xfbbf24,
-        transparent: true,
-        opacity: 0.35,
-        side: THREE.BackSide
-      });
-      const corona = new THREE.Mesh(coronaGeo, coronaMat);
-      celestialGroup.add(corona);
+    const sunCoreGeo = new THREE.SphereGeometry(3.6, 32, 32);
+    const sunCoreMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+    const sunCore = new THREE.Mesh(sunCoreGeo, sunCoreMat);
+    sunSubGroup.add(sunCore);
 
-      // Pulsating Sun Rays Ring
-      const ringGeo = new THREE.RingGeometry(7.0, 9.0, 32);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: 0xfde047,
-        transparent: true,
-        opacity: 0.25,
-        side: THREE.DoubleSide
-      });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.lookAt(0, (numFloors * floorHeight) / 2, 0);
-      celestialGroup.add(ring);
+    const coronaGeo = new THREE.SphereGeometry(6.5, 32, 32);
+    const coronaMat = new THREE.MeshBasicMaterial({
+      color: 0xfbbf24,
+      transparent: true,
+      opacity: 0.35,
+      side: THREE.BackSide
+    });
+    const corona = new THREE.Mesh(coronaGeo, coronaMat);
+    sunSubGroup.add(corona);
 
-      // Dynamic Directional Sunlight
-      const sunLight = new THREE.DirectionalLight(0xfffaed, isWinter ? 1.8 : 2.5);
-      sunLight.position.set(0, 0, 0);
-      sunLight.target.position.set(0, (numFloors * floorHeight) / 2, 0);
-      scene.add(sunLight.target);
-      celestialGroup.add(sunLight);
-    } else {
-      // Nighttime Glowing Crescent Moon
-      const moonGeo = new THREE.SphereGeometry(3.0, 32, 32);
-      const moonMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
-      celestialGroup.add(new THREE.Mesh(moonGeo, moonMat));
+    const ringGeo = new THREE.RingGeometry(7.0, 9.0, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xfde047,
+      transparent: true,
+      opacity: 0.25,
+      side: THREE.DoubleSide
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.lookAt(0, (numFloors * floorHeight) / 2, 0);
+    sunSubGroup.add(ring);
 
-      const moonGlowGeo = new THREE.SphereGeometry(5.2, 32, 32);
-      const moonGlowMat = new THREE.MeshBasicMaterial({
-        color: 0x38bdf8,
-        transparent: true,
-        opacity: 0.22,
-        side: THREE.BackSide
-      });
-      celestialGroup.add(new THREE.Mesh(moonGlowGeo, moonGlowMat));
+    const sunLight = new THREE.DirectionalLight(0xfffaed, isWinter ? 1.8 : 2.5);
+    sunLight.position.set(0, 0, 0);
+    sunLight.target.position.set(0, (numFloors * floorHeight) / 2, 0);
+    scene.add(sunLight.target);
+    sunSubGroup.add(sunLight);
 
-      const moonLight = new THREE.DirectionalLight(0x93c5fd, 0.9);
-      celestialGroup.add(moonLight);
-    }
+    celestialGroup.add(sunSubGroup);
+
+    // --- MOON SUBGROUP ---
+    const moonSubGroup = new THREE.Group();
+    moonSubGroupRef.current = moonSubGroup;
+
+    const moonGeo = new THREE.SphereGeometry(3.2, 32, 32);
+    const moonMat = new THREE.MeshBasicMaterial({ color: 0xf0f9ff });
+    const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+    moonSubGroup.add(moonMesh);
+
+    const moonGlowGeo = new THREE.SphereGeometry(5.4, 32, 32);
+    const moonGlowMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.25,
+      side: THREE.BackSide
+    });
+    moonSubGroup.add(new THREE.Mesh(moonGlowGeo, moonGlowMat));
+
+    const moonLight = new THREE.DirectionalLight(0xbae6fd, 1.1);
+    moonLight.position.set(0, 0, 0);
+    moonLight.target.position.set(0, (numFloors * floorHeight) / 2, 0);
+    moonSubGroup.add(moonLight);
+
+    celestialGroup.add(moonSubGroup);
     scene.add(celestialGroup);
+
+    // Initial position based on selectedHour
+    const isInitDay = selectedHour >= 6 && selectedHour <= 19;
+    sunSubGroup.visible = isInitDay;
+    moonSubGroup.visible = !isInitDay;
+
+    if (isInitDay) {
+      const hourAngle = ((selectedHour - 6) / 13) * Math.PI;
+      const sunX = Math.cos(Math.PI - hourAngle) * 55;
+      const sunY = Math.max(12, Math.sin(hourAngle) * 52);
+      const sunZ = Math.sin(hourAngle) * 25 + 15;
+      celestialGroup.position.set(sunX, sunY, sunZ);
+    } else {
+      const nightProgress = selectedHour >= 20 ? (selectedHour - 20) / 10 : (selectedHour + 4) / 10;
+      const moonAngle = nightProgress * Math.PI;
+      const moonX = Math.cos(Math.PI - moonAngle) * 45;
+      const moonY = Math.max(15, Math.sin(moonAngle) * 48);
+      const moonZ = -30 - Math.sin(moonAngle) * 15;
+      celestialGroup.position.set(moonX, moonY, moonZ);
+    }
 
     // Root Groups
     const buildingGroup = new THREE.Group();
@@ -1406,6 +1430,35 @@ export default function AutodeskBuildingViewer({
     };
   }, [numFloors, isSectionCut, selectedFloorIndex, showRadiationRays, showSpecularGlare, showThermalPlumes, showNeighborTemps, showAirflowParticles, showPeople, showFurniture, viewportMode, simSpeed, floorTenantState, theme, isEmptyPlot, activePreset, isAutoRotate]);
 
+  // ☀️ / 🌙 REAL-TIME DYNAMIC SUN & MOON CELESTIAL POSITION & PHASES
+  // Transitions Sun (Daytime) vs Moon (Nighttime) smoothly as selectedHour moves
+  useEffect(() => {
+    const celestial = celestialGroupRef.current;
+    const sunSub = sunSubGroupRef.current;
+    const moonSub = moonSubGroupRef.current;
+    if (!celestial || !sunSub || !moonSub) return;
+
+    const isDay = selectedHour >= 6 && selectedHour <= 19;
+    sunSub.visible = isDay;
+    moonSub.visible = !isDay;
+
+    if (isDay) {
+      const hourAngle = ((selectedHour - 6) / 13) * Math.PI; // 0 at 06:00 (East) to PI at 19:00 (West)
+      const sunX = Math.cos(Math.PI - hourAngle) * 55;
+      const sunY = Math.max(12, Math.sin(hourAngle) * 52);
+      const sunZ = Math.sin(hourAngle) * 25 + 15;
+      celestial.position.set(sunX, sunY, sunZ);
+    } else {
+      // Night lunar path (20:00 to 05:00)
+      const nightProgress = selectedHour >= 20 ? (selectedHour - 20) / 10 : (selectedHour + 4) / 10;
+      const moonAngle = nightProgress * Math.PI;
+      const moonX = Math.cos(Math.PI - moonAngle) * 45;
+      const moonY = Math.max(15, Math.sin(moonAngle) * 48);
+      const moonZ = -30 - Math.sin(moonAngle) * 15;
+      celestial.position.set(moonX, moonY, moonZ);
+    }
+  }, [selectedHour, isWinter]);
+
   // 🌡️ REAL-TIME DYNAMIC HOURLY SURROUNDING BUILDINGS THERMAL UPDATER
   // Updates Three.js neighbor mesh colors & emissive glows instantly as selectedHour changes
   useEffect(() => {
@@ -1521,9 +1574,29 @@ export default function AutodeskBuildingViewer({
       </div>
 
       {/* 1.5. 📍 REAL-TIME LOCATION GEOCODER & SITE STATUS MODE SWITCHER */}
-      <div className={`p-4 rounded-3xl border shadow-lg space-y-3 transition-all ${
-        isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/90 border-slate-800'
+      <div className={`p-5 rounded-3xl border shadow-xl space-y-3.5 transition-all ${
+        isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
       }`}>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-cyan-400 animate-bounce" />
+            <div>
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <span>📍 Set Facility Location / Address (FortyGuard Microclimate Simulation)</span>
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Enter any NYC street address, landmark, or GPS coordinates to calculate local microclimate solar irradiance, heat island delta, and surrounding towers radiant flux.
+              </p>
+            </div>
+          </div>
+
+          {/* Active Location Indicator */}
+          <div className="px-3 py-1 rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-[11px] font-mono text-cyan-300 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+            <span>Active Site: <strong>{activeLocationQuery || 'New York Financial District (Default)'}</strong></span>
+          </div>
+        </div>
+
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Search Input */}
           <form
@@ -1542,7 +1615,7 @@ export default function AutodeskBuildingViewer({
                 type="text"
                 value={locationInput}
                 onChange={(e) => setLocationInput(e.target.value)}
-                placeholder="Enter NYC Address / Landmark / GPS (e.g., 350 5th Ave, Empire State, Hudson Yards, 40.7580, -73.9855)"
+                placeholder="Type NYC Address, Landmark, or GPS (e.g., 350 5th Ave, Empire State Building, 30 Hudson Yards, 40.7580, -73.9855)..."
                 className={`w-full pl-10 pr-4 py-2.5 rounded-2xl text-xs font-mono border focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all ${
                   isLight ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400' : 'bg-slate-900 border-slate-700 text-white placeholder:text-slate-500'
                 }`}
@@ -1551,15 +1624,15 @@ export default function AutodeskBuildingViewer({
             <button
               type="submit"
               disabled={isLoadingCfd}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-lg transition-all cursor-pointer disabled:opacity-50 shrink-0"
             >
               <Search className="w-3.5 h-3.5" />
-              <span>{isLoadingCfd ? 'Simulating...' : 'Simulate'}</span>
+              <span>{isLoadingCfd ? 'Simulating...' : '📍 Set & Simulate Location'}</span>
             </button>
           </form>
 
           {/* Site Status Mode Toggle: Existing BIM Facility vs Greenfield Empty Plot */}
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800 text-xs font-bold font-mono">
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800 text-xs font-bold font-mono shrink-0">
             <button
               type="button"
               onClick={() => {
@@ -1589,19 +1662,20 @@ export default function AutodeskBuildingViewer({
           </div>
         </div>
 
-        {/* Quick NYC Location Chips */}
-        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-800/60">
+        {/* Quick NYC "Set Location" Preset Buttons */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/80 font-mono text-[11px]">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-            <Compass className="w-3 h-3 text-cyan-400" />
-            <span>Quick NYC Microclimate Zones:</span>
+            <Compass className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Click to Set Location Preset:</span>
           </span>
           {[
-            { label: 'One World Financial (Lower Manhattan)', query: 'One World Financial Tower, Lower Manhattan, NY' },
+            { label: 'One World Financial (Downtown)', query: 'One World Financial Tower, Lower Manhattan, NY' },
             { label: '30 Hudson Yards (Midtown West)', query: '30 Hudson Yards, New York, NY' },
             { label: 'Grand Central Plaza (Midtown East)', query: 'Grand Central Plaza, 42nd St, New York, NY' },
+            { label: 'Empire State Building (350 5th Ave)', query: 'Empire State Building, 350 5th Ave, NY' },
             { label: 'Brooklyn Navy Yard (Waterfront)', query: 'Building 77, Brooklyn Navy Yard, NY' },
-            { label: 'Empire State Building (Midtown)', query: 'Empire State Building, 350 5th Ave, NY' },
-            { label: 'Columbia Manhattanville (Upper Manhattan)', query: 'Columbia University Manhattanville Campus, NY' }
+            { label: 'Columbia University (Manhattanville)', query: 'Columbia University Manhattanville Campus, NY' },
+            { label: 'Times Square (Broadway)', query: 'Times Square, Broadway & 45th St, New York, NY' }
           ].map((loc) => (
             <button
               key={loc.label}
@@ -1611,11 +1685,13 @@ export default function AutodeskBuildingViewer({
                 setActiveLocationQuery(loc.query);
                 fetchCfdPhysics(loc.query, isEmptyPlot);
               }}
-              className={`text-[10px] px-2.5 py-1 rounded-xl border transition-all cursor-pointer font-mono ${
-                activeLocationQuery === loc.query ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/60 font-bold' : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700'
+              className={`text-[10px] px-3 py-1.5 rounded-xl border transition-all cursor-pointer font-mono flex items-center gap-1 ${
+                activeLocationQuery === loc.query
+                  ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md'
+                  : 'bg-slate-900 text-slate-300 border-slate-800 hover:text-white hover:border-slate-700 hover:bg-slate-850'
               }`}
             >
-              {loc.label}
+              <span>📍 {loc.label}</span>
             </button>
           ))}
         </div>
