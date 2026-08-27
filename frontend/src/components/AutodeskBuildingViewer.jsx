@@ -66,7 +66,10 @@ import {
   Laptop,
   ZoomIn,
   Search,
-  Hammer
+  Hammer,
+  Snowflake,
+  SlidersHorizontal,
+  Settings2
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -517,6 +520,12 @@ export default function AutodeskBuildingViewer({
   // Simulation Speed: 1x, 2x, 5x
   const [simSpeed, setSimSpeed] = useState(1);
   const [isAutoRotate, setIsAutoRotate] = useState(false); // Default to steady / freeze for easy reading!
+  // Climate Season Mode: 'summer' (Heatwave Peak Cooling) | 'winter' (Sub-Zero Freeze & Heat Recovery)
+  const [climateSeason, setClimateSeason] = useState('summer');
+
+  // Floor HVAC Overrides
+  const [floorSetpointOverrides, setFloorSetpointOverrides] = useState({});
+  const [floorDamperOverrides, setFloorDamperOverrides] = useState({});
 
   // Physics Toggles
   const [showPeople, setShowPeople] = useState(true);
@@ -563,11 +572,11 @@ export default function AutodeskBuildingViewer({
     }));
   };
 
-  // Fetch 12-Hour Autodesk CFD Microclimate Physics Data for the exact selected preset or custom location
-  const fetchCfdPhysics = async (customLoc = activeLocationQuery, emptyPlot = isEmptyPlot) => {
+  // Fetch 12-Hour Autodesk CFD Microclimate Physics Data for the exact selected preset, custom location & season
+  const fetchCfdPhysics = async (customLoc = activeLocationQuery, emptyPlot = isEmptyPlot, season = climateSeason) => {
     setIsLoadingCfd(true);
     try {
-      let url = `${API_BASE}/api/hvac/autodesk-cfd-simulation?preset_key=${activePreset}&is_empty_plot=${emptyPlot}`;
+      let url = `${API_BASE}/api/hvac/autodesk-cfd-simulation?preset_key=${activePreset}&is_empty_plot=${emptyPlot}&climate_season=${season}`;
       if (customLoc) {
         url += `&location_query=${encodeURIComponent(customLoc)}`;
       }
@@ -584,8 +593,8 @@ export default function AutodeskBuildingViewer({
   };
 
   useEffect(() => {
-    fetchCfdPhysics(activeLocationQuery, isEmptyPlot);
-  }, [activePreset, activeLocationQuery, isEmptyPlot]);
+    fetchCfdPhysics(activeLocationQuery, isEmptyPlot, climateSeason);
+  }, [activePreset, activeLocationQuery, isEmptyPlot, climateSeason]);
 
   // Three.js References
   const sceneRef = useRef(null);
@@ -600,36 +609,43 @@ export default function AutodeskBuildingViewer({
   const floorSlabsGroupRef = useRef(null);
   const ductworkGroupRef = useRef(null);
 
-  const schedule = dataStore?.hourly_schedule || [];
-  const currentHourData = schedule[selectedHour] || schedule[0] || {};
+  const numFloors = 8;
+  const floorHeight = 3.2;
 
-  const rawAmbient = typeof currentHourData.ambient_temp_c === 'number' ? currentHourData.ambient_temp_c : 34.5;
-  const rawIndoor = typeof currentHourData.indoor_temp_c === 'number' ? currentHourData.indoor_temp_c : 22.8;
-  const rawChillerKw = typeof currentHourData.chiller_power_kw === 'number' ? currentHourData.chiller_power_kw : 180;
-  const rawSavingsKw = typeof currentHourData.power_savings_kw === 'number' ? currentHourData.power_savings_kw : 300;
-  const rawMode = currentHourData.mode || 'PEAK_SHED_COASTING';
-  const rawTariff = typeof currentHourData.tariff_rate === 'number' ? currentHourData.tariff_rate : 0.46;
-  const rawBattery = typeof currentHourData.thermal_storage_charge_pct === 'number' ? currentHourData.thermal_storage_charge_pct : 55;
-  const timeLabel = currentHourData.time_label || '14:00';
+  const isWinter = climateSeason === 'winter';
+  const rawAmbient = isWinter
+    ? Math.round((-3.5 + 8.5 * Math.sin(Math.max(0, (selectedHour - 6)) * Math.PI / 12.0)) * 10) / 10
+    : (dataStore?.hourly_schedule?.[selectedHour]?.ambient_temp_c || 34.5);
+  const rawIndoor = isWinter ? 21.5 : (dataStore?.hourly_schedule?.[selectedHour]?.indoor_temp_c || 22.8);
+  const rawChillerKw = isWinter
+    ? Math.round(180 + 190 * (1 - Math.sin(Math.max(0, (selectedHour - 6)) * Math.PI / 12.0)))
+    : (dataStore?.hourly_schedule?.[selectedHour]?.chiller_power_kw || 420);
+  const rawSavingsKw = isWinter
+    ? Math.round(75 + 40 * Math.sin(Math.max(0, (selectedHour - 6)) * Math.PI / 12.0))
+    : (dataStore?.hourly_schedule?.[selectedHour]?.peak_shaving_kw || 140);
+  const rawBattery = dataStore?.battery_soc_pct || 65;
 
-  const numFloors = Math.min(20, Math.max(3, customBuildingPlan?.num_floors || dataStore?.building?.num_floors || 8));
-  const floorHeight = 3.0;
+  const timeLabel = `${String(selectedHour).padStart(2, '0')}:00`;
 
-  const floorProfiles = Array.from({ length: numFloors }, (_, idx) => {
-    const tenantKey = floorTenantState[idx] || (idx % 2 === 0 ? 'GOOGLE_UFAD' : 'GOLDMAN_VAV');
+  // Dynamic Floor Profiles with Company Tenants
+  const floorProfiles = Array.from({ length: numFloors }, (_, i) => {
+    const tenantKey = floorTenantState[i] || 'GOOGLE_UFAD';
     const tenantHvac = COMPANY_HVAC_CATALOG[tenantKey] || COMPANY_HVAC_CATALOG.GOOGLE_UFAD;
-    const isLobby = idx === 0;
-    const isTopRoof = idx === numFloors - 1;
-
-    let baseDamperPct = isLobby ? 78 : isTopRoof ? 85 : 60;
-    const airflowCfm = Math.round(1600 + (baseDamperPct / 100) * 2200);
+    const baseDamperPct = floorDamperOverrides[i] !== undefined
+      ? floorDamperOverrides[i]
+      : (tenantHvac.damper_min_pct + Math.round(Math.sin((i / numFloors) * Math.PI + (selectedHour / 24) * Math.PI) * 35));
+    const targetSetTemp = floorSetpointOverrides[i] !== undefined
+      ? floorSetpointOverrides[i]
+      : (isWinter ? 21.5 : 22.5);
+    const airflowCfm = Math.round(baseDamperPct * (tenantHvac.supply_cfm_per_floor / 100));
 
     return {
-      floorNumber: idx + 1,
-      elevationM: parseFloat(((idx + 1) * 3.5).toFixed(1)),
+      floorNumber: i + 1,
+      floorIndex: i,
+      name: i === 0 ? 'Ground Lobby & Security' : i === numFloors - 1 ? 'Penthouse Executive Boardroom' : `Level ${i + 1} - ${tenantHvac.shortCode}`,
       outsideTemp: rawAmbient,
-      solarFlux: 680,
-      targetTemp: 22.6,
+      solarFlux: isWinter ? 420 : 680,
+      targetTemp: targetSetTemp,
       damperPct: baseDamperPct,
       airflowCfm,
       zoneRole: `${tenantHvac.company} (${tenantHvac.shortCode})`,
@@ -642,8 +658,10 @@ export default function AutodeskBuildingViewer({
   const powerKw = rawChillerKw;
   const batteryPct = rawBattery;
 
-  const outdoorPct = Math.min(100, Math.max(5, ((outdoorTemp - 15) / (48 - 15)) * 100));
-  const indoorPct = Math.min(100, Math.max(5, ((indoorTemp - 15) / (48 - 15)) * 100));
+  const outdoorPct = isWinter
+    ? Math.min(100, Math.max(5, ((outdoorTemp - (-10)) / (15 - (-10))) * 100))
+    : Math.min(100, Math.max(5, ((outdoorTemp - 15) / (48 - 15)) * 100));
+  const indoorPct = Math.min(100, Math.max(5, ((indoorTemp - 15) / (30 - 15)) * 100));
   const powerPct = Math.min(100, Math.max(4, (powerKw / 750) * 100));
 
   // =========================================================================
@@ -705,12 +723,72 @@ export default function AutodeskBuildingViewer({
     dirLight2.position.set(-30, 20, -20);
     scene.add(dirLight2);
 
-    // Glowing Sun Sphere
-    const sunGeo = new THREE.SphereGeometry(3.2, 16, 16);
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-    const sunMesh = new THREE.Mesh(sunGeo, sunMat);
-    sunMesh.position.set(45, 52, 35);
-    scene.add(sunMesh);
+    // ☀️ DYNAMIC CELESTIAL SUN & CORONA (OR CRESCENT MOON AT NIGHT)
+    const isDaytime = selectedHour >= 6 && selectedHour <= 19;
+    const hourAngle = ((selectedHour - 6) / 13) * Math.PI; // 0 at sunrise (East) to PI at sunset (West)
+    const sunX = Math.cos(Math.PI - hourAngle) * 55;
+    const sunY = isDaytime ? Math.max(12, Math.sin(hourAngle) * 52) : -20;
+    const sunZ = Math.sin(hourAngle) * 25 + 15;
+
+    const celestialGroup = new THREE.Group();
+    celestialGroup.position.set(sunX, isDaytime ? sunY : 40, isDaytime ? sunZ : -35);
+
+    if (isDaytime) {
+      // Golden / Luminous Sun Core
+      const sunCoreGeo = new THREE.SphereGeometry(3.6, 32, 32);
+      const sunColor = selectedHour <= 8 || selectedHour >= 17 ? 0xf97316 : 0xfef08a;
+      const sunCoreMat = new THREE.MeshBasicMaterial({ color: sunColor });
+      const sunCore = new THREE.Mesh(sunCoreGeo, sunCoreMat);
+      celestialGroup.add(sunCore);
+
+      // Glowing Solar Corona Halo
+      const coronaGeo = new THREE.SphereGeometry(6.5, 32, 32);
+      const coronaMat = new THREE.MeshBasicMaterial({
+        color: selectedHour <= 8 || selectedHour >= 17 ? 0xfb923c : 0xfbbf24,
+        transparent: true,
+        opacity: 0.35,
+        side: THREE.BackSide
+      });
+      const corona = new THREE.Mesh(coronaGeo, coronaMat);
+      celestialGroup.add(corona);
+
+      // Pulsating Sun Rays Ring
+      const ringGeo = new THREE.RingGeometry(7.0, 9.0, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xfde047,
+        transparent: true,
+        opacity: 0.25,
+        side: THREE.DoubleSide
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.lookAt(0, (numFloors * floorHeight) / 2, 0);
+      celestialGroup.add(ring);
+
+      // Dynamic Directional Sunlight
+      const sunLight = new THREE.DirectionalLight(0xfffaed, isWinter ? 1.8 : 2.5);
+      sunLight.position.set(0, 0, 0);
+      sunLight.target.position.set(0, (numFloors * floorHeight) / 2, 0);
+      scene.add(sunLight.target);
+      celestialGroup.add(sunLight);
+    } else {
+      // Nighttime Glowing Crescent Moon
+      const moonGeo = new THREE.SphereGeometry(3.0, 32, 32);
+      const moonMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
+      celestialGroup.add(new THREE.Mesh(moonGeo, moonMat));
+
+      const moonGlowGeo = new THREE.SphereGeometry(5.2, 32, 32);
+      const moonGlowMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.22,
+        side: THREE.BackSide
+      });
+      celestialGroup.add(new THREE.Mesh(moonGlowGeo, moonGlowMat));
+
+      const moonLight = new THREE.DirectionalLight(0x93c5fd, 0.9);
+      celestialGroup.add(moonLight);
+    }
+    scene.add(celestialGroup);
 
     // Root Groups
     const buildingGroup = new THREE.Group();
@@ -1578,8 +1656,32 @@ export default function AutodeskBuildingViewer({
           </div>
         </div>
 
-        {/* Sim Speed Multiplier & Toggles */}
-        <div className="flex items-center gap-3">
+        {/* Season & Sim Speed Multiplier & Toggles */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* ☀️ Summer / ❄️ Winter Climate Switcher */}
+          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-mono">
+            <button
+              type="button"
+              onClick={() => setClimateSeason('summer')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                climateSeason === 'summer' ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Sun className="w-3.5 h-3.5" />
+              <span>☀️ Summer</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setClimateSeason('winter')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                climateSeason === 'winter' ? 'bg-cyan-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Snowflake className="w-3.5 h-3.5" />
+              <span>❄️ Winter Freeze</span>
+            </button>
+          </div>
+
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-mono">
             <span className="text-[10px] text-slate-500 px-1 font-bold">SPEED:</span>
             {[1, 2, 5].map((spd) => (
@@ -1636,11 +1738,42 @@ export default function AutodeskBuildingViewer({
         <div className={`xl:col-span-7 rounded-3xl p-5 shadow-xl border relative overflow-hidden flex flex-col justify-between ${
           isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
         }`}>
+          {/* Floor Level Selector Strip for HVAC Team */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-2.5 font-mono text-[11px] z-10">
+            <span className="text-slate-400 font-bold text-[10px] uppercase flex items-center gap-1 shrink-0">
+              <Layers className="w-3.5 h-3.5 text-cyan-400" /> Floors:
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedFloorIndex(null)}
+              className={`px-2.5 py-1 rounded-lg border font-bold transition-all cursor-pointer shrink-0 ${
+                selectedFloorIndex === null ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+              }`}
+            >
+              All Floors (Stack)
+            </button>
+            {floorProfiles.map((fl, idx) => (
+              <button
+                key={fl.floorNumber}
+                type="button"
+                onClick={() => setSelectedFloorIndex(selectedFloorIndex === idx ? null : idx)}
+                className={`px-2.5 py-1 rounded-lg border font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                  selectedFloorIndex === idx
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400 font-black shadow-md ring-1 ring-cyan-300'
+                    : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                }`}
+              >
+                <span>F{fl.floorNumber}</span>
+                <span className="text-[9px] opacity-75">({fl.tenantHvac.shortCode})</span>
+              </button>
+            ))}
+          </div>
+
           {/* Top Controls & Camera Angles */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2 z-10">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-mono font-black px-3 py-1 rounded-xl border bg-slate-950 text-cyan-300 border-slate-800">
-                TIME: {timeLabel} • {rawAmbient}°C
+                TIME: {timeLabel} • {rawAmbient}°C {isWinter ? '❄️ Winter' : '☀️ Summer'}
               </span>
 
               {/* Quick Focus Button on Occupants */}
@@ -1819,6 +1952,119 @@ export default function AutodeskBuildingViewer({
               </div>
             </div>
           )}
+
+          {/* 🏢 DEDICATED FLOOR LEVEL HVAC MANAGEMENT & INSPECTOR CONSOLE */}
+          {selectedFloorIndex !== null && (() => {
+            const activeFloor = floorProfiles[selectedFloorIndex];
+            const tenant = activeFloor.tenantHvac;
+            return (
+              <div className="mt-3 p-4 rounded-2xl bg-slate-950 border border-cyan-500/50 shadow-2xl space-y-3 font-mono text-xs animate-fade-in-up">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-cyan-400" />
+                    <div>
+                      <h4 className="text-sm font-black text-white flex items-center gap-2">
+                        <span>Floor {activeFloor.floorNumber} HVAC Management: {activeFloor.name}</span>
+                      </h4>
+                      <span className="text-[11px] text-cyan-300">{tenant.company} • {tenant.systemType}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCameraAngle('OCCUPANTS_ZOOM')}
+                      className="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold cursor-pointer hover:bg-cyan-500 hover:text-slate-950 transition-all"
+                    >
+                      🔍 Focus Floor
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFloorIndex(null)}
+                      className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white text-[11px] cursor-pointer"
+                    >
+                      ✕ Close
+                    </button>
+                  </div>
+                </div>
+
+                {/* Floor Controls Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                  {/* Setpoint Slider */}
+                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-slate-400">Target Temp Setpoint:</span>
+                      <strong className="text-cyan-400 font-bold">{activeFloor.targetTemp}°C</strong>
+                    </div>
+                    <input
+                      type="range"
+                      min="18.0"
+                      max="26.0"
+                      step="0.5"
+                      value={activeFloor.targetTemp}
+                      onChange={(e) => setFloorSetpointOverrides(prev => ({ ...prev, [selectedFloorIndex]: parseFloat(e.target.value) }))}
+                      className="w-full accent-cyan-400 bg-slate-800 cursor-pointer"
+                    />
+                    <span className="text-[9px] text-slate-500 block">ASHRAE 55 Setpoint Modulation</span>
+                  </div>
+
+                  {/* Damper & CFM Modulation */}
+                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-slate-400">VAV Damper Flow:</span>
+                      <strong className="text-emerald-400 font-bold">{activeFloor.damperPct}% ({activeFloor.airflowCfm.toLocaleString()} CFM)</strong>
+                    </div>
+                    <input
+                      type="range"
+                      min="20"
+                      max="100"
+                      step="5"
+                      value={activeFloor.damperPct}
+                      onChange={(e) => setFloorDamperOverrides(prev => ({ ...prev, [selectedFloorIndex]: parseInt(e.target.value) }))}
+                      className="w-full accent-emerald-400 bg-slate-800 cursor-pointer"
+                    />
+                    <span className="text-[9px] text-slate-500 block">Supply Air Modulation</span>
+                  </div>
+
+                  {/* Company System Switcher */}
+                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                    <span className="text-[11px] text-slate-400 block">Assigned HVAC System:</span>
+                    <select
+                      value={floorTenantState[selectedFloorIndex] || 'GOOGLE_UFAD'}
+                      onChange={(e) => setFloorCompany(selectedFloorIndex, e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-white text-[11px] font-mono cursor-pointer"
+                    >
+                      {Object.values(COMPANY_HVAC_CATALOG).map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.shortCode} - {cat.company}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-[9px] text-slate-500 block">{tenant.primaryBenefit}</span>
+                  </div>
+                </div>
+
+                {/* Floor Real-time Telemetry Metrics */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                  <div className="p-2 rounded-lg bg-slate-900/80 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">Indoor Temp:</span>
+                    <strong className="text-emerald-400 font-bold">{indoorTemp}°C</strong>
+                  </div>
+                  <div className="p-2 rounded-lg bg-slate-900/80 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">Active Occupants:</span>
+                    <strong className="text-cyan-400 font-bold">{tenant.occupant_count} People</strong>
+                  </div>
+                  <div className="p-2 rounded-lg bg-slate-900/80 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">CO2 IAQ Quality:</span>
+                    <strong className="text-emerald-300 font-bold">465 ppm (Clean)</strong>
+                  </div>
+                  <div className="p-2 rounded-lg bg-slate-900/80 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">Comfort Score:</span>
+                    <strong className="text-cyan-300 font-bold">ASHRAE 55 OK (PMV: +0.06)</strong>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Bottom Physics Visualization Toggles */}
           <div className="mt-3 p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">

@@ -458,13 +458,15 @@ def execute_12h_autodesk_cfd_simulation(
     lat: Optional[float] = None,
     lng: Optional[float] = None,
     is_empty_plot: bool = False,
+    climate_season: str = "summer",
     target_building_params: Optional[Dict[str, Any]] = None,
     fortyguard_12h_forecast: Optional[List[Dict[str, Any]]] = None
 ) -> Dict[str, Any]:
     """
     Executes a 12-Hour Predictive Autodesk CFD & Revit Energy Analysis Simulation.
     Calculates dynamic facade heat fluxes, secondary reflections, Sol-Air temperatures,
-    rooftop thermal plumes, empty plot greenfield microclimate influx, and perimeter zone VAV CFM load asymmetry.
+    rooftop thermal plumes, empty plot greenfield microclimate influx, perimeter zone VAV CFM load asymmetry,
+    and supports both Summer Heatwave and Winter Freeze / Heat Recovery modes.
     """
     from services.blueprint_parser import geocode_location_string
 
@@ -500,10 +502,11 @@ def execute_12h_autodesk_cfd_simulation(
             "floor_area_m2": 4500.0 if is_empty_plot else 32000.0,
             "wall_u_value": 0.28,      # W/(m^2*K)
             "glazing_shgc": 0.25,
-            "target_surface_temp_c": 24.0,
+            "target_surface_temp_c": 21.5 if climate_season == "winter" else 24.0,
             "concrete_thermal_mass_kwh_c": 2800.0,
             "pre_cooling_hours_lead": 4.0,
-            "is_empty_plot": is_empty_plot
+            "is_empty_plot": is_empty_plot,
+            "climate_season": climate_season
         }
 
     structures_150m = city_context["structures_150m"]
@@ -516,9 +519,10 @@ def execute_12h_autodesk_cfd_simulation(
     total_radiation_kwh = 0.0
     total_specular_kwh = 0.0
     
-    t_min = city_context["base_ambient_min_c"]
-    t_max = city_context["base_ambient_max_c"]
-    solar_peak = city_context["base_solar_ghi_peak"]
+    is_winter = climate_season == "winter"
+    t_min = -3.5 if is_winter else city_context["base_ambient_min_c"]
+    t_max = 5.2 if is_winter else city_context["base_ambient_max_c"]
+    solar_peak = 460.0 if is_winter else city_context["base_solar_ghi_peak"]
 
     # 24-hour dynamic neighbor surface thermal curve lookup
     neighbor_24h_telemetry = {n["id"]: [] for n in structures_150m}

@@ -228,19 +228,21 @@ async def get_autodesk_cfd_simulation(
     location_query: Optional[str] = Query(default=None, description="Custom address, landmark, or coordinates in NYC"),
     lat: Optional[float] = Query(default=None, description="Latitude coordinate"),
     lng: Optional[float] = Query(default=None, description="Longitude coordinate"),
-    is_empty_plot: bool = Query(default=False, description="Whether to simulate an empty greenfield plot vs an existing facility")
+    is_empty_plot: bool = Query(default=False, description="Whether to simulate an empty greenfield plot vs an existing facility"),
+    climate_season: str = Query(default="summer", description="Climate season: 'summer' (heatwave peak cooling) or 'winter' (sub-zero freeze & heat recovery)")
 ):
     """
     Executes 3D Thermal & HVAC Microclimate Simulation in an Autodesk CFD / Revit Energy Analysis Environment.
     Integrates 12-hour predictive FortyGuard microclimate parameters, 150m urban massing context,
-    Stefan-Boltzmann longwave exchange, specular solar reflections, Sol-Air temperatures, empty plot thermal influx, and plume tracking.
+    Stefan-Boltzmann longwave exchange, specular solar reflections, Sol-Air temperatures, empty plot thermal influx, plume tracking, and winter heat recovery.
     """
     results = execute_12h_autodesk_cfd_simulation(
         preset_key=preset_key,
         location_query=location_query,
         lat=lat,
         lng=lng,
-        is_empty_plot=is_empty_plot
+        is_empty_plot=is_empty_plot,
+        climate_season=climate_season
     )
     return results
 
