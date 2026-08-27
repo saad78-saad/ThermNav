@@ -506,7 +506,9 @@ export default function AutodeskBuildingViewer({
   const isLight = theme === 'light';
   const dataStore = hvacData || scheduleData;
 
-  const currentNeighbors = URBAN_CONTEXT_BY_PRESET[activePreset] || URBAN_CONTEXT_BY_PRESET.nyc_financial;
+  const currentNeighbors = (cfdData?.urban_context_150m && cfdData.urban_context_150m.length > 0)
+    ? cfdData.urban_context_150m
+    : (URBAN_CONTEXT_BY_PRESET[activePreset] || URBAN_CONTEXT_BY_PRESET.nyc_financial);
 
   // View Mode: '3D_AUTODESK_BIM' (Default) | 'GOOGLE_MAPS_THERMAL_GIS' | 'FLIR_INFRARED_CFD'
   const [viewportMode, setViewportMode] = useState('3D_AUTODESK_BIM');
@@ -547,11 +549,15 @@ export default function AutodeskBuildingViewer({
   const [cfdData, setCfdData] = useState(null);
   const [isLoadingCfd, setIsLoadingCfd] = useState(false);
 
-  // Update selected neighbor when preset changes
+  // Update selected neighbor when preset or cfdData changes
   useEffect(() => {
-    const neighbors = URBAN_CONTEXT_BY_PRESET[activePreset] || URBAN_CONTEXT_BY_PRESET.nyc_financial;
-    setSelectedNeighbor(neighbors[0]);
-  }, [activePreset]);
+    if (cfdData?.urban_context_150m && cfdData.urban_context_150m.length > 0) {
+      setSelectedNeighbor(cfdData.urban_context_150m[0]);
+    } else {
+      const neighbors = URBAN_CONTEXT_BY_PRESET[activePreset] || URBAN_CONTEXT_BY_PRESET.nyc_financial;
+      setSelectedNeighbor(neighbors[0]);
+    }
+  }, [activePreset, cfdData]);
 
   // 🏢 Dynamic Company Tenant per Floor
   const [floorTenantState, setFloorTenantState] = useState({
@@ -616,9 +622,10 @@ export default function AutodeskBuildingViewer({
   const floorHeight = 3.2;
 
   const isWinter = climateSeason === 'winter';
+  const cfdHourly = cfdData?.hourly_cfd_schedule?.[selectedHour >= 6 && selectedHour <= 18 ? selectedHour - 6 : 6];
   const rawAmbient = isWinter
     ? Math.round((-3.5 + 8.5 * Math.sin(Math.max(0, (selectedHour - 6)) * Math.PI / 12.0)) * 10) / 10
-    : (dataStore?.hourly_schedule?.[selectedHour]?.ambient_temp_c || 34.5);
+    : (typeof cfdHourly?.ambient_dry_bulb_c === 'number' ? cfdHourly.ambient_dry_bulb_c : (dataStore?.hourly_schedule?.[selectedHour]?.ambient_temp_c || 34.5));
   const rawIndoor = isWinter ? 21.5 : (dataStore?.hourly_schedule?.[selectedHour]?.indoor_temp_c || 22.8);
   const rawChillerKw = isWinter
     ? Math.round(180 + 190 * (1 - Math.sin(Math.max(0, (selectedHour - 6)) * Math.PI / 12.0)))
@@ -2076,7 +2083,7 @@ export default function AutodeskBuildingViewer({
                       min="18.0"
                       max="26.0"
                       step="0.5"
-                      value={activeFloor.targetTemp}
+                      value={typeof activeFloor.targetTemp === 'number' && !isNaN(activeFloor.targetTemp) ? activeFloor.targetTemp : 22.5}
                       onChange={(e) => setFloorSetpointOverrides(prev => ({ ...prev, [selectedFloorIndex]: parseFloat(e.target.value) }))}
                       className="w-full accent-cyan-400 bg-slate-800 cursor-pointer"
                     />
@@ -2087,14 +2094,14 @@ export default function AutodeskBuildingViewer({
                   <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
                     <div className="flex justify-between items-center text-[11px]">
                       <span className="text-slate-400">VAV Damper Flow:</span>
-                      <strong className="text-emerald-400 font-bold">{activeFloor.damperPct}% ({activeFloor.airflowCfm.toLocaleString()} CFM)</strong>
+                      <strong className="text-emerald-400 font-bold">{(typeof activeFloor.damperPct === 'number' && !isNaN(activeFloor.damperPct) ? activeFloor.damperPct : 65)}% ({((typeof activeFloor.airflowCfm === 'number' && !isNaN(activeFloor.airflowCfm)) ? activeFloor.airflowCfm : 3200).toLocaleString()} CFM)</strong>
                     </div>
                     <input
                       type="range"
                       min="20"
                       max="100"
                       step="5"
-                      value={activeFloor.damperPct}
+                      value={typeof activeFloor.damperPct === 'number' && !isNaN(activeFloor.damperPct) ? activeFloor.damperPct : 65}
                       onChange={(e) => setFloorDamperOverrides(prev => ({ ...prev, [selectedFloorIndex]: parseInt(e.target.value) }))}
                       className="w-full accent-emerald-400 bg-slate-800 cursor-pointer"
                     />
@@ -2198,7 +2205,7 @@ export default function AutodeskBuildingViewer({
                 min="0"
                 max="1"
                 step="0.05"
-                value={explodeFactor}
+                value={typeof explodeFactor === 'number' && !isNaN(explodeFactor) ? explodeFactor : 0}
                 onChange={(e) => setExplodeFactor(parseFloat(e.target.value))}
                 className="w-24 accent-cyan-400 bg-slate-800 cursor-pointer"
               />
