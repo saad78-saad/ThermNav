@@ -516,6 +516,7 @@ export default function AutodeskBuildingViewer({
 
   // Simulation Speed: 1x, 2x, 5x
   const [simSpeed, setSimSpeed] = useState(1);
+  const [isAutoRotate, setIsAutoRotate] = useState(false); // Default to steady / freeze for easy reading!
 
   // Physics Toggles
   const [showPeople, setShowPeople] = useState(true);
@@ -1296,7 +1297,7 @@ export default function AutodeskBuildingViewer({
           if (car2.position.z > 45) car2.position.z = -45;
         }
 
-        if (!isDragging && buildingGroup && urbanContextGroup && radiationGroup && airflowParticlesGroup) {
+        if (isAutoRotate && !isDragging && buildingGroup && urbanContextGroup && radiationGroup && airflowParticlesGroup) {
           const rotSpeed = 0.0008 * simSpeed;
           buildingGroup.rotation.y += rotSpeed;
           urbanContextGroup.rotation.y += rotSpeed;
@@ -1325,7 +1326,7 @@ export default function AutodeskBuildingViewer({
       }
       renderer?.dispose();
     };
-  }, [numFloors, isSectionCut, selectedFloorIndex, showRadiationRays, showSpecularGlare, showThermalPlumes, showNeighborTemps, showAirflowParticles, showPeople, showFurniture, viewportMode, simSpeed, floorTenantState, theme, isEmptyPlot, activePreset]);
+  }, [numFloors, isSectionCut, selectedFloorIndex, showRadiationRays, showSpecularGlare, showThermalPlumes, showNeighborTemps, showAirflowParticles, showPeople, showFurniture, viewportMode, simSpeed, floorTenantState, theme, isEmptyPlot, activePreset, isAutoRotate]);
 
   // 🌡️ REAL-TIME DYNAMIC HOURLY SURROUNDING BUILDINGS THERMAL UPDATER
   // Updates Three.js neighbor mesh colors & emissive glows instantly as selectedHour changes
@@ -1593,6 +1594,19 @@ export default function AutodeskBuildingViewer({
               </button>
             ))}
           </div>
+
+          {/* ⏸️ Auto-Rotate Freeze / Play Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsAutoRotate(!isAutoRotate)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+              isAutoRotate ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md' : 'bg-slate-950 text-slate-300 border-slate-700 hover:bg-slate-900 hover:text-white'
+            }`}
+            title={isAutoRotate ? 'Click to Freeze Model Rotation for easy reading' : 'Click to Enable Slow 3D Rotation'}
+          >
+            {isAutoRotate ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+            <span>{isAutoRotate ? '⏸️ Auto-Rotate (ON)' : '▶️ Steady / Freeze (OFF)'}</span>
+          </button>
 
           <button
             onClick={() => setShowPeople(!showPeople)}
@@ -1902,53 +1916,70 @@ export default function AutodeskBuildingViewer({
           </div>
 
           {/* Neighbor Building Live Thermal Inspector */}
-          <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-rose-400" />
-                <h4 className="text-xs font-black text-white uppercase tracking-wider">
-                  Neighbor Thermal Inspector ({selectedNeighbor.name})
-                </h4>
-              </div>
-              <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-mono font-bold">
-                {selectedNeighbor.surfaceTempC}°C
-              </span>
-            </div>
+          {(() => {
+            const dynSelected = calculateDynamicNeighborThermal(selectedNeighbor, selectedHour, rawAmbient);
+            return (
+              <div className="p-5 rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Building className="w-4 h-4 text-rose-400" />
+                    <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                      Neighbor Thermal Inspector ({selectedNeighbor.name})
+                    </h4>
+                  </div>
+                  <span
+                    className="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-black border shadow-sm"
+                    style={{
+                      backgroundColor: `${dynSelected.colorCss}20`,
+                      borderColor: `${dynSelected.colorCss}60`,
+                      color: dynSelected.colorCss === '#06b6d4' ? '#67e8f9' : dynSelected.colorCss === '#10b981' ? '#6ee7b7' : dynSelected.colorCss === '#eab308' ? '#fde047' : '#fca5a5'
+                    }}
+                  >
+                    {dynSelected.tempC}°C ({selectedNeighbor.orientation})
+                  </span>
+                </div>
 
-            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 font-mono text-[11px] space-y-2 text-slate-300">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Distance to Target:</span>
-                <strong className="text-white">{selectedNeighbor.distanceM} meters</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">View Factor F12:</span>
-                <strong className="text-cyan-400">{selectedNeighbor.viewFactor}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Radiant Heat Emitted:</span>
-                <strong className="text-rose-400">{selectedNeighbor.radiantFluxOntoTarget}</strong>
-              </div>
-              <div className="flex justify-between pt-1 border-t border-slate-800">
-                <span className="text-slate-400">Rooftop Exhaust Plume:</span>
-                <strong className="text-amber-400">{selectedNeighbor.plumeTempC}°C (Hot Plume)</strong>
-              </div>
-            </div>
+                <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 font-mono text-[11px] space-y-2 text-slate-200">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Distance to Target:</span>
+                    <strong className="text-white">{selectedNeighbor.distanceM} meters</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">View Factor F12:</span>
+                    <strong className="text-cyan-400">{selectedNeighbor.viewFactor}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Dynamic Surface Temp:</span>
+                    <strong className="text-rose-400">{dynSelected.tempC}°C ({dynSelected.radiantLabel})</strong>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-slate-800">
+                    <span className="text-slate-400">Rooftop Exhaust Plume:</span>
+                    <strong className="text-amber-400">{selectedNeighbor.plumeTempC}°C (Hot Plume)</strong>
+                  </div>
+                </div>
 
-            {/* Selector buttons for the 4 surrounding structures */}
-            <div className="grid grid-cols-4 gap-1.5 pt-1">
-              {currentNeighbors.map((n) => (
-                <button
-                  key={n.id}
-                  onClick={() => setSelectedNeighbor(n)}
-                  className={`p-1.5 rounded-lg border text-[10px] font-bold font-mono transition-all cursor-pointer ${
-                    selectedNeighbor.id === n.id ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
-                  }`}
-                >
-                  {n.orientation}
-                </button>
-              ))}
-            </div>
-          </div>
+                {/* Selector buttons for the 4 surrounding structures */}
+                <div className="grid grid-cols-4 gap-1.5 pt-1">
+                  {currentNeighbors.map((n) => {
+                    const dynN = calculateDynamicNeighborThermal(n, selectedHour, rawAmbient);
+                    return (
+                      <button
+                        key={n.id}
+                        type="button"
+                        onClick={() => setSelectedNeighbor(n)}
+                        className={`p-2 rounded-xl border text-[10px] font-bold font-mono transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                          selectedNeighbor.id === n.id ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md' : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white'
+                        }`}
+                      >
+                        <span className="font-bold">{n.orientation}</span>
+                        <span className="text-[9px] opacity-85">{dynN.tempC}°C</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
 

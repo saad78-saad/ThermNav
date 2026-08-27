@@ -99,11 +99,11 @@ export default function ThreeThermalBackground({ theme = 'light' }) {
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
-      // Fast, smooth ambient rotation of 3D skyline
-      towerGroup.rotation.y += 0.0022;
+      // Very subtle, calm ambient skyline rotation (non-distracting)
+      towerGroup.rotation.y += 0.0003;
 
-      camera.position.x += (mouseX * 8 - camera.position.x) * 0.045;
-      camera.position.y += (-mouseY * 5 + 18 - camera.position.y) * 0.045;
+      camera.position.x += (mouseX * 4 - camera.position.x) * 0.02;
+      camera.position.y += (-mouseY * 3 + 18 - camera.position.y) * 0.02;
       camera.lookAt(0, 4, 0);
 
       renderer.render(scene, camera);
@@ -125,7 +125,7 @@ export default function ThreeThermalBackground({ theme = 'light' }) {
   return (
     <div
       ref={mountRef}
-      className={`fixed inset-0 pointer-events-none z-0 ${theme === 'light' ? 'opacity-50' : 'opacity-80'}`}
+      className={`fixed inset-0 pointer-events-none z-0 ${theme === 'light' ? 'opacity-15' : 'opacity-25'}`}
       style={{ overflow: 'hidden' }}
     />
   );
