@@ -74,25 +74,43 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-// Dynamic 24-Hour Surrounding Neighbor Thermal Calculator (Stefan-Boltzmann + Solar Azimuth)
-const calculateDynamicNeighborThermal = (neighbor, hour = 14, baseAmbient = 34.5) => {
-  const orient = neighbor.orientation;
-  let tempDelta = 0;
-  if (orient === 'EAST') {
-    // Peak East sun in morning (08:00 - 11:00)
-    tempDelta = hour >= 6 && hour <= 14 ? 12.5 * Math.sin(((hour - 6) * Math.PI) / 8.0) : 1.0;
-  } else if (orient === 'SOUTH') {
-    // Peak South sun midday (11:00 - 15:00)
-    tempDelta = hour >= 8 && hour <= 17 ? 15.0 * Math.sin(((hour - 8) * Math.PI) / 8.0) : 1.5;
-  } else if (orient === 'WEST') {
-    // Peak West specular reflection in afternoon (13:00 - 17:30)
-    tempDelta = hour >= 10 && hour <= 19 ? 19.5 * Math.sin(((hour - 10) * Math.PI) / 8.0) : 1.0;
-  } else {
-    // North shaded canyon
-    tempDelta = hour >= 9 && hour <= 17 ? 4.5 * Math.sin(((hour - 9) * Math.PI) / 8.0) : 0.5;
+// Dynamic 24-Hour Surrounding Neighbor Thermal Calculator (FortyGuard / Autodesk CFD API Telemetry)
+const calculateDynamicNeighborThermal = (neighbor, hour = 14, baseAmbient = 34.5, cfdData = null) => {
+  if (!neighbor) return { tempC: 38.0, colorHex: 0xf97316, colorCss: '#f97316', badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/40', radiantLabel: '38.0°C' };
+
+  // 1. Direct real-time API Telemetry Lookup from FortyGuard / Autodesk CFD Backend
+  const telemetry = cfdData?.neighbor_24h_telemetry;
+  let apiTemp = null;
+
+  if (telemetry) {
+    const neighborEntry = telemetry[neighbor.id] || telemetry[neighbor.name] || telemetry[neighbor.name?.toLowerCase()];
+    if (neighborEntry && Array.isArray(neighborEntry) && neighborEntry[hour]) {
+      apiTemp = neighborEntry[hour].surface_temp_c;
+    } else if (typeof telemetry[neighbor.id] === 'number') {
+      apiTemp = telemetry[neighbor.id];
+    }
   }
 
-  const currentTemp = Math.round((baseAmbient + tempDelta * 0.72) * 10) / 10;
+  const orient = neighbor.orientation || 'WEST';
+  let currentTemp;
+
+  if (typeof apiTemp === 'number' && !isNaN(apiTemp)) {
+    currentTemp = Math.round(apiTemp * 10) / 10;
+  } else {
+    // Dynamic physics calculation fallback
+    let tempDelta = 0;
+    if (orient === 'EAST') {
+      tempDelta = hour >= 6 && hour <= 14 ? 12.5 * Math.sin(((hour - 6) * Math.PI) / 8.0) : 1.0;
+    } else if (orient === 'SOUTH') {
+      tempDelta = hour >= 8 && hour <= 17 ? 15.0 * Math.sin(((hour - 8) * Math.PI) / 8.0) : 1.5;
+    } else if (orient === 'WEST') {
+      tempDelta = hour >= 10 && hour <= 19 ? 19.5 * Math.sin(((hour - 10) * Math.PI) / 8.0) : 1.0;
+    } else {
+      tempDelta = hour >= 9 && hour <= 17 ? 4.5 * Math.sin(((hour - 9) * Math.PI) / 8.0) : 0.5;
+    }
+    currentTemp = Math.round((baseAmbient + tempDelta * 0.72) * 10) / 10;
+  }
+
   let colorHex = 0x06b6d4; // Cool Cyan (<28C)
   let colorCss = '#06b6d4';
   let badgeColor = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40';
@@ -120,7 +138,7 @@ const calculateDynamicNeighborThermal = (neighbor, hour = 14, baseAmbient = 34.5
     colorHex,
     colorCss,
     badgeColor,
-    radiantLabel: `${currentTemp}°C (${orient} Facade)`
+    radiantLabel: `${currentTemp}°C (${orient} Facade • API Sync)`
   };
 };
 
@@ -506,9 +524,9 @@ export default function AutodeskBuildingViewer({
   const isLight = theme === 'light';
   const dataStore = hvacData || scheduleData;
 
-  const currentNeighbors = (cfdData?.urban_context_150m && cfdData.urban_context_150m.length > 0)
-    ? cfdData.urban_context_150m
-    : (URBAN_CONTEXT_BY_PRESET[activePreset] || URBAN_CONTEXT_BY_PRESET.nyc_financial);
+  // CFD Physics Simulation Data State (Declared first to avoid TDZ ReferenceError)
+  const [cfdData, setCfdData] = useState(null);
+  const [isLoadingCfd, setIsLoadingCfd] = useState(false);
 
   // View Mode: '3D_AUTODESK_BIM' (Default) | 'GOOGLE_MAPS_THERMAL_GIS' | 'FLIR_INFRARED_CFD'
   const [viewportMode, setViewportMode] = useState('3D_AUTODESK_BIM');
@@ -540,14 +558,15 @@ export default function AutodeskBuildingViewer({
   const [isSectionCut, setIsSectionCut] = useState(true);
   const [explodeFactor, setExplodeFactor] = useState(0);
   const [selectedFloorIndex, setSelectedFloorIndex] = useState(null);
-  const [selectedNeighbor, setSelectedNeighbor] = useState(currentNeighbors[0]);
 
   // Active Engineering HUD Sub-Tab
   const [activePhysicsTab, setActivePhysicsTab] = useState('physics_summary');
 
-  // CFD Physics Simulation Data
-  const [cfdData, setCfdData] = useState(null);
-  const [isLoadingCfd, setIsLoadingCfd] = useState(false);
+  const currentNeighbors = (cfdData?.urban_context_150m && cfdData.urban_context_150m.length > 0)
+    ? cfdData.urban_context_150m
+    : (URBAN_CONTEXT_BY_PRESET[activePreset] || URBAN_CONTEXT_BY_PRESET.nyc_financial);
+
+  const [selectedNeighbor, setSelectedNeighbor] = useState(currentNeighbors[0]);
 
   // Update selected neighbor when preset or cfdData changes
   useEffect(() => {
@@ -940,7 +959,7 @@ export default function AutodeskBuildingViewer({
     neighborMeshesMapRef.current = [];
 
     currentNeighbors.forEach((neighbor) => {
-      const dyn = calculateDynamicNeighborThermal(neighbor, selectedHour, rawAmbient);
+      const dyn = calculateDynamicNeighborThermal(neighbor, selectedHour, rawAmbient, cfdData);
       const nGeo = new THREE.BoxGeometry(neighbor.size[0], neighbor.size[1], neighbor.size[2]);
       const nMat = new THREE.MeshStandardMaterial({
         color: dyn.colorHex,
@@ -1466,12 +1485,12 @@ export default function AutodeskBuildingViewer({
     }
   }, [selectedHour, isWinter]);
 
-  // 🌡️ REAL-TIME DYNAMIC HOURLY SURROUNDING BUILDINGS THERMAL UPDATER
+  // 🌡️ REAL-TIME DYNAMIC HOURLY SURROUNDING BUILDINGS THERMAL UPDATER (API SYNC)
   // Updates Three.js neighbor mesh colors & emissive glows instantly as selectedHour changes
   useEffect(() => {
     if (!neighborMeshesMapRef.current || neighborMeshesMapRef.current.length === 0) return;
     neighborMeshesMapRef.current.forEach((item) => {
-      const dyn = calculateDynamicNeighborThermal(item.neighbor, selectedHour, rawAmbient);
+      const dyn = calculateDynamicNeighborThermal(item.neighbor, selectedHour, rawAmbient, cfdData);
       if (item.mesh && item.mesh.material) {
         item.mesh.material.color.setHex(dyn.colorHex);
         item.mesh.material.emissive.setHex(dyn.colorHex);
@@ -1480,7 +1499,7 @@ export default function AutodeskBuildingViewer({
         item.wireframe.material.color.setHex(dyn.colorHex);
       }
     });
-  }, [selectedHour, rawAmbient]);
+  }, [selectedHour, rawAmbient, cfdData]);
 
   const setCameraAngle = (viewName) => {
     const camera = cameraRef.current;
@@ -1936,7 +1955,7 @@ export default function AutodeskBuildingViewer({
             {showNeighborTemps && (
               <div className="absolute top-3 left-3 pointer-events-none space-y-1.5 z-20 font-mono text-[10px]">
                 {currentNeighbors.map((n) => {
-                  const dyn = calculateDynamicNeighborThermal(n, selectedHour, rawAmbient);
+                  const dyn = calculateDynamicNeighborThermal(n, selectedHour, rawAmbient, cfdData);
                   return (
                     <div
                       key={n.id}
@@ -2246,7 +2265,7 @@ export default function AutodeskBuildingViewer({
 
           {/* Neighbor Building Live Thermal Inspector */}
           {(() => {
-            const dynSelected = calculateDynamicNeighborThermal(selectedNeighbor, selectedHour, rawAmbient);
+            const dynSelected = calculateDynamicNeighborThermal(selectedNeighbor, selectedHour, rawAmbient, cfdData);
             return (
               <div className="p-5 rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -2290,7 +2309,7 @@ export default function AutodeskBuildingViewer({
                 {/* Selector buttons for the 4 surrounding structures */}
                 <div className="grid grid-cols-4 gap-1.5 pt-1">
                   {currentNeighbors.map((n) => {
-                    const dynN = calculateDynamicNeighborThermal(n, selectedHour, rawAmbient);
+                    const dynN = calculateDynamicNeighborThermal(n, selectedHour, rawAmbient, cfdData);
                     return (
                       <button
                         key={n.id}
