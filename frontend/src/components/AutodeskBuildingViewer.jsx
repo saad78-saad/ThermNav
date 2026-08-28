@@ -1618,10 +1618,25 @@ export default function AutodeskBuildingViewer({
             </div>
           </div>
 
-          {/* Active Location Indicator */}
-          <div className="px-3 py-1 rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-[11px] font-mono text-cyan-300 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-            <span>Active Site: <strong>{activeLocationQuery || 'New York Financial District (Default)'}</strong></span>
+          {/* FortyGuard Live Geocoded Site & Microclimate Telemetry Indicator */}
+          <div className="px-3.5 py-1.5 rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-[11px] font-mono text-cyan-300 flex flex-wrap items-center gap-2 shadow-sm">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="font-bold text-white">FortyGuard LTM Queued:</span>
+              <strong className="text-cyan-300">{activeLocationQuery || cfdData?.location_metadata?.city || 'New York Financial District'}</strong>
+            </div>
+            <span className="text-slate-500">|</span>
+            <span className="text-slate-300 text-[10px]">
+              GPS: <strong>{cfdData?.location_metadata?.lat || 40.7061}, {cfdData?.location_metadata?.lng || -74.0092}</strong>
+            </span>
+            <span className="text-slate-500">|</span>
+            <span className="text-amber-300 text-[10px]">
+              UHI Influx: <strong>+{cfdData?.fortyguard_location_metrics?.uhi_delta_celsius || 4.2}°C</strong>
+            </span>
+            <span className="text-slate-500">|</span>
+            <span className="text-rose-300 text-[10px]">
+              Solar Peak: <strong>{cfdData?.fortyguard_location_metrics?.solar_ghi_peak_wm2 || 960} W/m²</strong>
+            </span>
           </div>
         </div>
 
