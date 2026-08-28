@@ -1073,11 +1073,13 @@ export default function AutodeskBuildingViewer({
     }
 
     // =========================================================================
-    // 💨 4. ANIMATED AIRFLOW SUPPLY PARTICLES (INSIDE DUCTS & SLABS - CUT ON EMPTY PLOT)
+    // 💨 4. ANIMATED AIRFLOW SUPPLY PARTICLES (SUMMER COOL CYAN vs WINTER WARM AMBER)
     // =========================================================================
     const particleCount = 140;
-    const particleGeo = new THREE.SphereGeometry(0.2, 6, 6);
-    const particleMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.9 });
+    const particleGeo = new THREE.SphereGeometry(0.22, 8, 8);
+    // Summer: Cool Cyan/Blue 0x00f0ff (Chilled Supply Air) | Winter: Warm Amber/Orange 0xf59e0b (Thermal Hydronic Heat)
+    const particleColor = isWinter ? 0xf59e0b : 0x00f0ff;
+    const particleMat = new THREE.MeshBasicMaterial({ color: particleColor, transparent: true, opacity: 0.95 });
     particleMeshGroup = new THREE.Group();
 
     if (showAirflowParticles && !isEmptyPlot) {
@@ -1169,13 +1171,13 @@ export default function AutodeskBuildingViewer({
       coreMesh.position.set(0, (numFloors * floorHeight + 1.5) / 2, 0);
       floorSlabsGroup.add(coreMesh);
 
-    // Primary Vertical HVAC Supply Riser
+    // Primary Vertical HVAC Supply Riser (Cold Blue in Summer, Warm Orange in Winter)
     const riserGeo = new THREE.BoxGeometry(2.0, numFloors * floorHeight + 2, 2.0);
     const riserMat = new THREE.MeshStandardMaterial({
-      color: 0x00f0ff,
+      color: isWinter ? 0xf97316 : 0x00f0ff,
       metalness: 0.8,
       roughness: 0.2,
-      emissive: 0x00d8f6,
+      emissive: isWinter ? 0xea580c : 0x00d8f6,
       emissiveIntensity: 0.85
     });
     const verticalRiser = new THREE.Mesh(riserGeo, riserMat);
@@ -1454,7 +1456,7 @@ export default function AutodeskBuildingViewer({
       }
       renderer?.dispose();
     };
-  }, [numFloors, isSectionCut, selectedFloorIndex, showRadiationRays, showSpecularGlare, showThermalPlumes, showNeighborTemps, showAirflowParticles, showPeople, showFurniture, viewportMode, simSpeed, floorTenantState, theme, isEmptyPlot, activePreset, isAutoRotate]);
+  }, [numFloors, isSectionCut, selectedFloorIndex, showRadiationRays, showSpecularGlare, showThermalPlumes, showNeighborTemps, showAirflowParticles, showPeople, showFurniture, viewportMode, simSpeed, floorTenantState, theme, isEmptyPlot, activePreset, isAutoRotate, climateSeason, isWinter]);
 
   // ☀️ / 🌙 REAL-TIME DYNAMIC SUN & MOON CELESTIAL POSITION & PHASES
   // Transitions Sun (Daytime) vs Moon (Nighttime) smoothly as selectedHour moves
@@ -1635,17 +1637,22 @@ export default function AutodeskBuildingViewer({
             }}
             className="flex-1 flex items-center gap-2"
           >
-            <div className="relative flex-1">
-              <MapPin className="w-4 h-4 text-cyan-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={locationInput}
-                onChange={(e) => setLocationInput(e.target.value)}
-                placeholder="Type NYC Address, Landmark, or GPS (e.g., 350 5th Ave, Empire State Building, 30 Hudson Yards, 40.7580, -73.9855)..."
-                className={`w-full pl-10 pr-4 py-2.5 rounded-2xl text-xs font-mono border focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all ${
-                  isLight ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400' : 'bg-slate-900 border-slate-700 text-white placeholder:text-slate-500'
-                }`}
-              />
+            <div className="relative flex-1 group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl blur-xs opacity-70 group-hover:opacity-100 transition-opacity" />
+              <div className="relative flex items-center">
+                <MapPin className="w-4 h-4 text-cyan-400 absolute left-3.5 top-1/2 -translate-y-1/2 z-10 animate-bounce" />
+                <input
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  placeholder="Enter Address / Landmark / GPS (e.g. 350 5th Ave, Empire State, Hudson Yards, Dubai, 40.7580, -73.9855)..."
+                  className={`w-full pl-10 pr-4 py-3 rounded-2xl text-xs font-mono font-bold border-2 focus:outline-none transition-all shadow-lg ${
+                    isLight
+                      ? 'bg-white border-cyan-600 text-slate-950 placeholder:text-slate-500 focus:ring-4 focus:ring-cyan-500/30'
+                      : 'bg-slate-950 border-cyan-400 text-white placeholder:text-slate-300 focus:ring-4 focus:ring-cyan-400/40 focus:border-cyan-300'
+                  }`}
+                />
+              </div>
             </div>
             <button
               type="submit"
