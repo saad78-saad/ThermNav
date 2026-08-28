@@ -720,8 +720,8 @@ export default function AutodeskBuildingViewer({
       camera.position.set(0, 62, 54);
       camera.lookAt(0, 0, 0);
     } else {
-      // Close, crystal clear, unblocked 3D architectural perspective
-      camera.position.set(18, 14, 24);
+      // Default Comfortable Zoomed-Out Architectural Perspective (Full BIM + Surrounding Towers + Sky)
+      camera.position.set(28, 20, 36);
       camera.lookAt(0, (numFloors * floorHeight) / 2 - 1, 0);
     }
 
@@ -1510,16 +1510,16 @@ export default function AutodeskBuildingViewer({
       camera.position.set(8, 9.5, 12);
       camera.lookAt(0, 8.5, 0);
     } else if (viewName === 'ISO') {
-      camera.position.set(18, 14, 24);
+      camera.position.set(28, 20, 36);
       camera.lookAt(0, (numFloors * floorHeight) / 2 - 1, 0);
     } else if (viewName === 'FRONT') {
-      camera.position.set(0, 12, 26);
+      camera.position.set(0, 16, 42);
       camera.lookAt(0, (numFloors * floorHeight) / 2 - 1, 0);
     } else if (viewName === 'TOP') {
-      camera.position.set(0, 58, 0);
+      camera.position.set(0, 68, 0);
       camera.lookAt(0, 0, 0);
     } else if (viewName === 'WEST_RADIATION') {
-      camera.position.set(-34, 18, 0);
+      camera.position.set(-46, 22, 0);
       camera.lookAt(0, (numFloors * floorHeight) / 2 - 1, 0);
     }
   };
