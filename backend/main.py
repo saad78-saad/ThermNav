@@ -21,12 +21,15 @@ app.add_middleware(
 # Core HVAC & Smart Cooling Router
 app.include_router(hvac_router.router)
 
-# FortyGuard API Suite & Diagnostics
+# FortyGuard API Suite & Diagnostics (Supports both /fortyguard and /api/fortyguard)
 app.include_router(fortyguard_suite.router)
+app.include_router(fortyguard_suite.router, prefix="/api")
 
-# Legacy & Concrete Logistics modules
+# Logistics & Worker Task Scheduling (Supports both /tasks and /api/tasks)
 app.include_router(dispatch.router)
+app.include_router(dispatch.router, prefix="/api")
 app.include_router(task_schedule_router.router)
+app.include_router(task_schedule_router.router, prefix="/api")
 
 
 @app.get("/")
