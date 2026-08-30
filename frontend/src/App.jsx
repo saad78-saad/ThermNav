@@ -34,7 +34,9 @@ import {
   UploadCloud,
   Trophy,
   Award,
-  AlertTriangle
+  AlertTriangle,
+  Menu,
+  X
 } from 'lucide-react';
 import CustomBuildingUploadModal from './components/CustomBuildingUploadModal';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -47,6 +49,7 @@ export default function App() {
 
   // Navigation: 'bim' (Autodesk 3D BIM Twin - Default) | 'director' | 'technician' | 'esg'
   const [activeRole, setActiveRole] = useState('bim');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('nyc_financial');
   const [showApiSuiteModal, setShowApiSuiteModal] = useState(false);
   const [showUserManualModal, setShowUserManualModal] = useState(false);
@@ -169,226 +172,252 @@ export default function App() {
       {/* 3D City Skyline Background */}
       <ThreeThermalBackground theme={theme} />
 
-      {/* Top Navbar */}
-      <header className={`sticky top-0 z-40 border-b backdrop-blur-md transition-colors ${
-        isLight ? 'bg-white/90 border-slate-200 shadow-sm' : 'bg-slate-950/80 border-slate-800'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
-          {/* Logo & Product Title */}
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-2xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-600/30">
-              <Building2 className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-black text-sm tracking-tight text-slate-950 dark:text-white">
-                  ThermoShift <span className="text-cyan-600 dark:text-cyan-400">EcoBreeze</span>
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 text-[10px] font-mono font-bold">
-                  v2.4
-                </span>
+      {/* Main Responsive Layout: Sidebar + Wide Content Canvas */}
+      <div className="flex min-h-screen">
+
+        {/* 📱 Mobile Backdrop Overlay */}
+        {isSidebarOpen && (
+          <div 
+            onClick={() => setIsSidebarOpen(false)} 
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
+
+        {/* ========================================================================= */}
+        {/* 🧭 EXECUTIVE COMMAND SIDEBAR (LEFT FIXED / COLLAPSIBLE DRAWER) */}
+        {/* ========================================================================= */}
+        <aside className={`fixed lg:sticky top-0 z-50 h-screen w-72 shrink-0 border-r flex flex-col justify-between p-5 space-y-6 overflow-y-auto transition-transform duration-300 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        } ${
+          isLight ? 'bg-white/95 border-slate-200 shadow-xl' : 'bg-slate-950/95 border-slate-800 backdrop-blur-xl'
+        }`}>
+          
+          <div className="space-y-6">
+            {/* Brand Logo & Version */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/25">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`font-black text-sm tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
+                      ThermoShift <span className="text-cyan-400">EcoBreeze</span>
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/30">
+                    FortyGuard LTM v2.4
+                  </span>
+                </div>
               </div>
-              <p className={`text-[11px] font-medium hidden sm:block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                FortyGuard Microclimate Predictive HVAC & 3D Autodesk BIM Twin
-              </p>
+
+              {/* Close Button on Mobile */}
+              <button 
+                onClick={() => setIsSidebarOpen(false)}
+                className="lg:hidden p-1.5 rounded-xl hover:bg-slate-800 text-slate-400"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Primary Views Section */}
+            <div className="space-y-1.5">
+              <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-3 pb-1">
+                Main System Views
+              </div>
+
+              <button
+                onClick={() => { setActiveRole('bim'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                  activeRole === 'bim'
+                    ? isLight
+                      ? 'bg-slate-950 text-white font-black shadow-md'
+                      : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black shadow-lg shadow-cyan-500/25 ring-2 ring-cyan-400/40'
+                    : isLight
+                      ? 'text-slate-700 hover:bg-slate-100'
+                      : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Box className="w-4 h-4 text-cyan-400" />
+                  <span>1. 3D Autodesk BIM Twin</span>
+                </div>
+                <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/20 text-[9px] font-mono text-cyan-300 font-bold">Hero</span>
+              </button>
+
+              <button
+                onClick={() => { setActiveRole('director'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                  activeRole === 'director'
+                    ? isLight
+                      ? 'bg-slate-950 text-white font-black shadow-md'
+                      : 'bg-cyan-500 text-slate-950 font-black shadow-md'
+                    : isLight
+                      ? 'text-slate-700 hover:bg-slate-100'
+                      : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  <span>2. Energy Director</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => { setActiveRole('technician'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                  activeRole === 'technician'
+                    ? isLight
+                      ? 'bg-slate-950 text-white font-black shadow-md'
+                      : 'bg-cyan-500 text-slate-950 font-black shadow-md'
+                    : isLight
+                      ? 'text-slate-700 hover:bg-slate-100'
+                      : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Activity className="w-4 h-4 text-cyan-400" />
+                  <span>3. AHU Plant Tech</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => { setActiveRole('esg'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                  activeRole === 'esg'
+                    ? isLight
+                      ? 'bg-slate-950 text-white font-black shadow-md'
+                      : 'bg-cyan-500 text-slate-950 font-black shadow-md'
+                    : isLight
+                      ? 'text-slate-700 hover:bg-slate-100'
+                      : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Compass className="w-4 h-4 text-emerald-400" />
+                  <span>4. Façade Solar & ESG</span>
+                </div>
+              </button>
+            </div>
+
+            {/* Quick Interactive Tools & Diagnostics Section */}
+            <div className="space-y-1.5 pt-2 border-t border-slate-800">
+              <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-3 pb-1">
+                Executive Tools & Suites
+              </div>
+
+              <button
+                onClick={() => setShowPitchModal(true)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-all cursor-pointer"
+              >
+                <Trophy className="w-4 h-4" />
+                <span>🏆 60-Sec Pitch Demo</span>
+              </button>
+
+              <button
+                onClick={() => setShowCrisisModal(true)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md shadow-rose-600/25 hover:scale-[1.02] transition-all cursor-pointer"
+              >
+                <Flame className="w-4 h-4 animate-pulse" />
+                <span>🔥 Heatwave Crisis Stress</span>
+              </button>
+
+              <button
+                onClick={() => setShowCustomUploadModal(true)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
+              >
+                <UploadCloud className="w-4 h-4 text-cyan-400" />
+                <span>📁 Upload Custom BIM</span>
+              </button>
+
+              <button
+                onClick={() => setShowEsgModal(true)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition-all cursor-pointer"
+              >
+                <Award className="w-4 h-4 text-emerald-400" />
+                <span>📜 Official ESG Certificate</span>
+              </button>
+
+              <button
+                onClick={() => setShowApiSuiteModal(true)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:border-cyan-500 hover:text-cyan-300 transition-all cursor-pointer"
+              >
+                <Layers className="w-4 h-4 text-cyan-400" />
+                <span>🔬 FortyGuard API Suite (7)</span>
+              </button>
+
+              <button
+                onClick={() => setShowUserManualModal(true)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer"
+              >
+                <BookOpen className="w-4 h-4 text-cyan-400" />
+                <span>📖 User Manual & Specs</span>
+              </button>
+
+              <button
+                onClick={() => setShowTourModal(true)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-300 transition-all cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span>💡 30-Sec Quick Tour</span>
+              </button>
             </div>
           </div>
 
-          {/* Role Navigation Buttons (3D Autodesk BIM as Primary Tab 1) */}
-          <div className={`hidden md:flex items-center p-1 rounded-2xl border text-xs font-bold ${
-            isLight ? 'bg-slate-100/80 border-slate-300' : 'bg-slate-900/90 border-slate-800'
-          }`}>
-            <button
-              onClick={() => setActiveRole('bim')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activeRole === 'bim'
-                  ? isLight
-                    ? 'bg-slate-950 text-white shadow-md font-black'
-                    : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 shadow-md font-black'
-                  : isLight
-                    ? 'text-cyan-800 hover:text-slate-950'
-                    : 'text-cyan-400 hover:text-white'
-              }`}
-            >
-              <Box className="w-3.5 h-3.5" /> 1. 3D Autodesk Digital Twin
-            </button>
-            <button
-              onClick={() => setActiveRole('director')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activeRole === 'director'
-                  ? isLight
-                    ? 'bg-white text-slate-950 shadow-md ring-1 ring-slate-300 font-black'
-                    : 'bg-cyan-500 text-slate-950 shadow-md font-black'
-                  : isLight
-                    ? 'text-slate-600 hover:text-slate-950'
-                    : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5" /> 2. Energy Director
-            </button>
-            <button
-              onClick={() => setActiveRole('technician')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activeRole === 'technician'
-                  ? isLight
-                    ? 'bg-white text-slate-950 shadow-md ring-1 ring-slate-300 font-black'
-                    : 'bg-cyan-500 text-slate-950 shadow-md font-black'
-                  : isLight
-                    ? 'text-slate-600 hover:text-slate-950'
-                    : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5" /> 3. AHU Tech
-            </button>
-            <button
-              onClick={() => setActiveRole('esg')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activeRole === 'esg'
-                  ? isLight
-                    ? 'bg-white text-slate-950 shadow-md ring-1 ring-slate-300 font-black'
-                    : 'bg-cyan-500 text-slate-950 shadow-md font-black'
-                  : isLight
-                    ? 'text-slate-600 hover:text-slate-950'
-                    : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5" /> 4. Façade/ESG
-            </button>
-          </div>
+          {/* Bottom Utility & Theme Controls */}
+          <div className="pt-4 border-t border-slate-800 space-y-3">
+            <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800">
+              <div className="flex items-center gap-2 text-[11px] font-mono">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="text-slate-300">FortyGuard BMS</span>
+              </div>
+              <span className="text-[10px] font-mono text-emerald-400 font-bold">ONLINE</span>
+            </div>
 
-          {/* Action Buttons: Pitch Demo, Heatwave Crisis, Blueprint, Manual, API Suite */}
-          <div className="flex items-center gap-2">
-            {/* 🏆 Hackathon Pitch Demo Trigger */}
-            <button
-              onClick={() => setShowPitchModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-md shadow-amber-500/20 transition-all cursor-pointer hover:scale-105"
-              title="Open 60-Second Hackathon Winning Pitch Demo"
-            >
-              <Trophy className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">🏆 Pitch Demo</span>
-            </button>
-
-            {/* 🔥 Extreme Heatwave Crisis Simulator */}
-            <button
-              onClick={() => setShowCrisisModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white shadow-md shadow-rose-600/25 transition-all cursor-pointer hover:scale-105"
-              title="Simulate +48°C Extreme Urban Heatwave Crisis"
-            >
-              <Flame className="w-3.5 h-3.5 animate-pulse" />
-              <span className="hidden sm:inline">🔥 Heat Crisis</span>
-            </button>
-
-            {/* 📄 Official ESG Certificate */}
-            <button
-              onClick={() => setShowEsgModal(true)}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 transition-all cursor-pointer"
-              title="View Verified ESG Carbon Reduction Certificate"
-            >
-              <Award className="w-3.5 h-3.5 text-emerald-400" />
-              <span>ESG Cert</span>
-            </button>
-
-            {/* User Manual Button */}
-            <button
-              onClick={() => setShowUserManualModal(true)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                isLight
-                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 shadow-sm'
-                  : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
-              }`}
-              title="Open User Manual & Quick Guide"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
-              <span className="hidden sm:inline">Manual</span>
-            </button>
-
-            {/* Theme Toggle Button */}
             <button
               onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                isLight
-                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 shadow-sm'
-                  : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-slate-700'
-              }`}
-              title={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-            >
-              {isLight ? (
-                <Moon className="w-3.5 h-3.5 text-indigo-600" />
-              ) : (
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-              )}
-            </button>
-
-            {/* Quick Tour Button */}
-            <button
-              onClick={() => setShowTourModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer shadow-sm"
-              title="30-Second Quick Start Tour for Judges & Users"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Quick Tour</span>
-            </button>
-
-            {/* Custom Building Blueprint Upload Button */}
-            <button
-              onClick={() => setShowCustomUploadModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-md shadow-cyan-600/25 transition-all cursor-pointer hover:scale-105"
-              title="Upload Custom Building Map / HVAC Blueprint"
-            >
-              <UploadCloud className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Upload Blueprint</span>
-            </button>
-
-            {/* FortyGuard Suite Modal Trigger */}
-            <button
-              onClick={() => setShowApiSuiteModal(true)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all shadow-sm cursor-pointer ${
-                isLight
-                  ? 'bg-cyan-50 hover:bg-cyan-100 text-cyan-900 border-cyan-300'
-                  : 'bg-slate-900 hover:border-cyan-500 text-cyan-300 border-slate-700'
+              className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                isLight ? 'bg-slate-100 border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-amber-300'
               }`}
             >
-              <Layers className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
-              <span className="hidden sm:inline">FortyGuard</span> API (7)
+              {isLight ? <Moon className="w-4 h-4 text-indigo-600" /> : <Sun className="w-4 h-4 text-amber-400" />}
+              <span>{isLight ? 'Dark Cyber Mode' : 'Light Mode'}</span>
             </button>
           </div>
-        </div>
-      </header>
+        </aside>
 
-      {/* Mobile Role Switcher (3D BIM Twin Primary) */}
-      <div className={`md:hidden flex items-center justify-around p-2 text-xs font-bold border-b overflow-x-auto ${
-        isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
-      }`}>
-        <button
-          onClick={() => setActiveRole('bim')}
-          className={`px-3 py-1.5 rounded-xl whitespace-nowrap ${activeRole === 'bim' ? (isLight ? 'bg-slate-950 text-white font-black' : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black') : 'text-cyan-400'}`}
-        >
-          1. 3D BIM Twin
-        </button>
-        <button
-          onClick={() => setActiveRole('director')}
-          className={`px-2.5 py-1.5 rounded-xl whitespace-nowrap ${activeRole === 'director' ? (isLight ? 'bg-slate-950 text-white font-black' : 'bg-cyan-500 text-slate-950 font-black') : 'text-slate-600 dark:text-slate-400'}`}
-        >
-          2. Director
-        </button>
-        <button
-          onClick={() => setActiveRole('technician')}
-          className={`px-2.5 py-1.5 rounded-xl whitespace-nowrap ${activeRole === 'technician' ? (isLight ? 'bg-slate-950 text-white font-black' : 'bg-cyan-500 text-slate-950 font-black') : 'text-slate-600 dark:text-slate-400'}`}
-        >
-          3. AHU Tech
-        </button>
-        <button
-          onClick={() => setActiveRole('esg')}
-          className={`px-2.5 py-1.5 rounded-xl whitespace-nowrap ${activeRole === 'esg' ? (isLight ? 'bg-slate-950 text-white font-black' : 'bg-cyan-500 text-slate-950 font-black') : 'text-slate-600 dark:text-slate-400'}`}
-        >
-          4. Façade/ESG
-        </button>
-      </div>
+        {/* ========================================================================= */}
+        {/* 💻 MAIN CONTENT WORKSPACE (EXPANDED TO FULL RIGHT WIDTH) */}
+        {/* ========================================================================= */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          
+          {/* Top Mobile Bar */}
+          <header className={`lg:hidden sticky top-0 z-30 flex items-center justify-between p-4 border-b backdrop-blur-md ${
+            isLight ? 'bg-white/90 border-slate-200' : 'bg-slate-950/80 border-slate-800'
+          }`}>
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 text-cyan-400 font-bold text-xs"
+            >
+              <Menu className="w-5 h-5" />
+              <span>Menu / Tools</span>
+            </button>
 
-      {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Dynamic Role Views */}
-        <ErrorBoundary theme={theme}>
+            <span className={`font-black text-xs ${isLight ? 'text-slate-950' : 'text-white'}`}>
+              ThermoShift <strong className="text-cyan-400">EcoBreeze</strong>
+            </span>
+
+            <button
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-amber-400"
+            >
+              {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            </button>
+          </header>
+
+          <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1">
+            {/* Dynamic Role Views */}
+            <ErrorBoundary theme={theme}>
           {/* ========================================================================= */}
           {/* 🌟 1. EXECUTIVE IMPACT COMMAND BAR (ALL CRITICAL HIGHLIGHTS ON FRONT PAGE) */}
           {/* ========================================================================= */}
@@ -600,6 +629,8 @@ export default function App() {
           </div>
         </div>
       </footer>
+        </div>
+      </div>
 
       {/* MODALS */}
       {/* 1. FORTYGUARD API SUITE MODAL */}
