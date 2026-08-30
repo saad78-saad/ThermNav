@@ -6,16 +6,34 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefi
 export default function FortyGuardApiSuiteModal({
   isOpen = true,
   onClose,
-  currentLat = 40.7061,
-  currentLng = -74.0092,
+  currentLat: propLat,
+  currentLng: propLng,
+  lat: directLat,
+  lng: directLng,
+  locationName: propLocationName,
   theme = 'dark',
 }) {
   const isLight = theme === 'light';
+  const initialLat = directLat || propLat || 40.7061;
+  const initialLng = directLng || propLng || -74.0092;
+
+  // Active Location & Coordinate State
+  const [currentLat, setCurrentLat] = useState(initialLat);
+  const [currentLng, setCurrentLng] = useState(initialLng);
+  const [searchLocation, setSearchLocation] = useState(propLocationName || 'Manhattan Financial Canyon, NY');
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+
   // Active API Tab: 'heat_intelligence' | 'env_params' | 'heatmap' | 'satellite' | 'streetview' | 'credits'
   const [activeTab, setActiveTab] = useState('heat_intelligence');
   const [loading, setLoading] = useState(false);
   const [apiResponse, setApiResponse] = useState(null);
   const [creditsInfo, setCreditsInfo] = useState(null);
+
+  useEffect(() => {
+    if (directLat || propLat) setCurrentLat(directLat || propLat);
+    if (directLng || propLng) setCurrentLng(directLng || propLng);
+    if (propLocationName) setSearchLocation(propLocationName);
+  }, [directLat, propLat, directLng, propLng, propLocationName]);
 
   const endpoints = [
     { id: 'heat_intelligence', name: 'Heat Intelligence', method: 'POST', path: '/v1/heat_intelligence', icon: Flame, badge: 'Canyon Heat Retention', hvacRole: 'Predicts how evening street-level heat traps impact building thermal mass' },
@@ -28,13 +46,35 @@ export default function FortyGuardApiSuiteModal({
 
   const currentEndpoint = endpoints.find(e => e.id === activeTab) || endpoints[0];
 
+  // Geocode location search
+  const handleLocationSearch = async (e) => {
+    if (e) e.preventDefault();
+    if (!searchLocation.trim()) return;
+    setIsSearchingLocation(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchLocation)}&limit=1`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const newLat = parseFloat(data[0].lat);
+        const newLng = parseFloat(data[0].lon);
+        setCurrentLat(newLat);
+        setCurrentLng(newLng);
+        executeEndpoint(activeTab, newLat, newLng);
+      }
+    } catch (err) {
+      console.warn('Location search error:', err);
+    } finally {
+      setIsSearchingLocation(false);
+    }
+  };
+
   // Fetch Credits on open
   useEffect(() => {
     if (isOpen) {
-      executeEndpoint(activeTab);
+      executeEndpoint(activeTab, currentLat, currentLng);
       fetchCredits();
     }
-  }, [isOpen, activeTab]);
+  }, [isOpen, activeTab, currentLat, currentLng]);
 
   const fetchCredits = async () => {
     try {
@@ -46,13 +86,13 @@ export default function FortyGuardApiSuiteModal({
     }
   };
 
-  const executeEndpoint = async (endpointId) => {
+  const executeEndpoint = async (endpointId, targetLat = currentLat, targetLng = currentLng) => {
     setLoading(true);
     setApiResponse(null);
 
     const payload = {
-      latitude: currentLat,
-      longitude: currentLng,
+      latitude: targetLat,
+      longitude: targetLng,
       temperature: 34.5,
     };
 
@@ -88,7 +128,7 @@ export default function FortyGuardApiSuiteModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in-up">
-      <div className={`max-w-5xl w-full border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] flex flex-col transition-all duration-300 ${
+      <div className={`max-w-5xl w-full border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 max-h-[92vh] flex flex-col transition-all duration-300 ${
         isLight ? 'bg-white border-slate-200 text-slate-900 shadow-2xl' : 'bg-[#0f172a] border-cyan-500/30 text-slate-100 ring-1 ring-cyan-500/20'
       }`}>
         {/* Modal Header */}
@@ -112,20 +152,45 @@ export default function FortyGuardApiSuiteModal({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Dynamic Location Search Bar & Coordinates Banner */}
+        <div className="bg-slate-950 p-3.5 rounded-2xl border border-cyan-500/30 flex flex-wrap items-center justify-between gap-3">
+          <form onSubmit={handleLocationSearch} className="flex items-center gap-2 flex-1 min-w-[280px]">
+            <span className="text-cyan-400 text-xs font-mono font-bold flex items-center gap-1 shrink-0">
+              📍 FortyGuard Location:
+            </span>
+            <input
+              type="text"
+              value={searchLocation}
+              onChange={(e) => setSearchLocation(e.target.value)}
+              placeholder="Search city, address or landmark..."
+              className="flex-1 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
+            />
+            <button
+              type="submit"
+              disabled={isSearchingLocation}
+              className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+            >
+              {isSearchingLocation ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : 'Search GPS'}
+            </button>
+          </form>
+
+          <div className="font-mono text-slate-400 text-[11px] flex items-center gap-3 shrink-0">
+            <span>Lat: <strong className="text-cyan-300">{currentLat.toFixed(4)}</strong></span>
+            <span>Lng: <strong className="text-cyan-300">{currentLng.toFixed(4)}</strong></span>
+          </div>
+        </div>
+
         {/* HVAC Role Context Callout */}
-        <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between gap-4 text-xs">
+        <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-2 text-cyan-300">
             <Wind className="w-4 h-4 text-cyan-400 flex-shrink-0" />
             <span><strong>HVAC Role:</strong> {currentEndpoint.hvacRole}</span>
-          </div>
-          <div className="font-mono text-slate-400 text-[11px] flex-shrink-0">
-            Target Lat: <span className="text-white font-bold">{currentLat}</span>, Lng: <span className="text-white font-bold">{currentLng}</span>
           </div>
         </div>
 

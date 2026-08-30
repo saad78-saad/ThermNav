@@ -525,7 +525,8 @@ export default function AutodeskBuildingViewer({
   customBuildingPlan = null,
   theme = 'dark',
   onLocationNotice,
-  onOpenUploadModal
+  onOpenUploadModal,
+  onLocationChange
 }) {
   const mountRef = useRef(null);
   const isLight = theme === 'light';
@@ -619,6 +620,13 @@ export default function AutodeskBuildingViewer({
       if (res.ok) {
         const json = await res.json();
         setCfdData(json);
+        if (json?.metadata && onLocationChange) {
+          onLocationChange({
+            lat: json.metadata.lat,
+            lng: json.metadata.lng,
+            locationName: customLoc || json.metadata.target_location || 'Selected Location'
+          });
+        }
       }
     } catch (err) {
       console.warn('Failed to fetch CFD simulation:', err);
@@ -647,7 +655,8 @@ export default function AutodeskBuildingViewer({
   const sunSubGroupRef = useRef(null);
   const moonSubGroupRef = useRef(null);
 
-  const numFloors = 8;
+  // Dynamic Blueprint Floors & Height
+  const numFloors = customBuildingPlan?.num_floors || customBuildingPlan?.floors || 8;
   const floorHeight = 3.2;
 
   const isWinter = climateSeason === 'winter';

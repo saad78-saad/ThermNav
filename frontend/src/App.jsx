@@ -138,20 +138,39 @@ function AppInner({ theme, setTheme }) {
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
 
+  // Active Location Coordinates State (Synchronized with FortyGuard & 3D Viewer)
+  const [activeLocationCoords, setActiveLocationCoords] = useState({
+    lat: 40.7061,
+    lng: -74.0092,
+    locationName: 'One World Financial Tower (Financial Canyon, Lower Manhattan, NY)'
+  });
+
   // Fetch HVAC Optimization Schedule from backend
-  const fetchHvacOptimization = async (presetKey, params) => {
+  const fetchHvacOptimization = async (presetKey, params, customPlan = customBuildingPlan) => {
     setIsLoadingHvac(true);
     const startTime = performance.now();
     try {
-      const res = await fetch(`${API_BASE}/api/hvac/optimize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          preset_key: presetKey,
-          pre_cooling_aggression: params.pre_cooling_aggression,
-          economizer_max_temp_c: params.economizer_max_temp_c
-        })
-      });
+      let res;
+      if (customPlan) {
+        res = await fetch(`${API_BASE}/api/hvac/simulate-custom`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...customPlan,
+            pre_cooling_aggression: params.pre_cooling_aggression
+          })
+        });
+      } else {
+        res = await fetch(`${API_BASE}/api/hvac/optimize`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            preset_key: presetKey,
+            pre_cooling_aggression: params.pre_cooling_aggression,
+            economizer_max_temp_c: params.economizer_max_temp_c
+          })
+        });
+      }
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -160,36 +179,28 @@ function AppInner({ theme, setTheme }) {
       setApiLatencyMs(Math.round(performance.now() - startTime));
     } catch (err) {
       console.warn('[HVAC API warning] Falling back to client simulator:', err);
-      // Fallback robust simulation data generator
-      setHvacData(generateClientHvacFallback(presetKey, params));
+      // Fallback robust simulation data generator scaled to custom plan if active
+      setHvacData(generateClientHvacFallback(presetKey, params, customPlan));
     } finally {
       setIsLoadingHvac(false);
     }
   };
 
   useEffect(() => {
-    fetchHvacOptimization(activePreset, hvacParams);
-  }, [activePreset, hvacParams]);
+    fetchHvacOptimization(activePreset, hvacParams, customBuildingPlan);
+  }, [activePreset, hvacParams, customBuildingPlan]);
 
   const handleApplyCustomSimulation = async (plan) => {
     setCustomBuildingPlan(plan);
-    setIsLoadingHvac(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/hvac/simulate-custom`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(plan)
+    if (plan.lat && plan.lng) {
+      setActiveLocationCoords({
+        lat: plan.lat,
+        lng: plan.lng,
+        locationName: plan.name || plan.city || 'Custom Facility'
       });
-      if (res.ok) {
-        const data = await res.json();
-        setHvacData(data);
-        setActiveRole('bim'); // Switch directly to 3D Autodesk viewer to see reconstructed building
-      }
-    } catch (err) {
-      console.warn('Failed custom backend simulation, using client fallback:', err);
-    } finally {
-      setIsLoadingHvac(false);
     }
+    fetchHvacOptimization(activePreset, hvacParams, plan);
+    setActiveRole('bim'); // Switch directly to 3D Autodesk viewer to see reconstructed building
   };
 
   const currentHourData = hvacData?.hourly_schedule?.[selectedHour] || {
@@ -549,6 +560,15 @@ function AppInner({ theme, setTheme }) {
                   theme={theme}
                   onLocationNotice={(locName) => setLocationNotice({ isOpen: true, locationName: locName })}
                   onOpenUploadModal={() => setShowCustomUploadModal(true)}
+                  onLocationChange={(coords) => {
+                    if (coords && coords.lat && coords.lng) {
+                      setActiveLocationCoords({
+                        lat: coords.lat,
+                        lng: coords.lng,
+                        locationName: coords.locationName || coords.name || 'Selected Location'
+                      });
+                    }
+                  }}
                 />
               )}
 
@@ -558,6 +578,7 @@ function AppInner({ theme, setTheme }) {
               selectedHour={selectedHour}
               currentHourData={currentHourData}
               activePreset={activePreset}
+              customBuildingPlan={customBuildingPlan}
               theme={theme}
               onOpenCrisisModal={() => setShowCrisisModal(true)}
             />
@@ -571,6 +592,7 @@ function AppInner({ theme, setTheme }) {
               hvacParams={hvacParams}
               onUpdateParams={setHvacParams}
               activePreset={activePreset}
+              customBuildingPlan={customBuildingPlan}
               theme={theme}
             />
           )}
@@ -581,6 +603,7 @@ function AppInner({ theme, setTheme }) {
               selectedHour={selectedHour}
               currentHourData={currentHourData}
               activePreset={activePreset}
+              customBuildingPlan={customBuildingPlan}
               theme={theme}
               onOpenEsgModal={() => setShowEsgModal(true)}
             />
@@ -598,24 +621,10 @@ function AppInner({ theme, setTheme }) {
             <span>• Powered by FortyGuard Hyperlocal Microclimate LTM Engine</span>
           </div>
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowPitchModal(true)}
-              className="hover:text-amber-400 font-bold flex items-center gap-1 cursor-pointer"
-            >
-              <Trophy className="w-3.5 h-3.5 text-amber-400" />
-              <span>Pitch Presentation</span>
+            <button onClick={() => setShowApiSuiteModal(true)} className="hover:text-cyan-400">
+              FortyGuard API
             </button>
-            <button
-              onClick={() => setShowCrisisModal(true)}
-              className="hover:text-rose-400 font-bold flex items-center gap-1 cursor-pointer"
-            >
-              <Flame className="w-3.5 h-3.5 text-rose-400" />
-              <span>Crisis Stress Test</span>
-            </button>
-            <button
-              onClick={() => setShowUserManualModal(true)}
-              className="hover:text-cyan-500 font-bold cursor-pointer"
-            >
+            <button onClick={() => setShowUserManualModal(true)} className="hover:text-cyan-400">
               User Manual
             </button>
           </div>
@@ -629,8 +638,9 @@ function AppInner({ theme, setTheme }) {
       <FortyGuardApiSuiteModal
         isOpen={showApiSuiteModal}
         onClose={() => setShowApiSuiteModal(false)}
-        lat={customBuildingPlan?.lat || PRESET_COORDS[activePreset]?.lat || 40.7061}
-        lng={customBuildingPlan?.lng || PRESET_COORDS[activePreset]?.lng || -74.0092}
+        lat={activeLocationCoords.lat}
+        lng={activeLocationCoords.lng}
+        locationName={activeLocationCoords.locationName}
         theme={theme}
       />
 
@@ -711,13 +721,15 @@ function AppInner({ theme, setTheme }) {
 }
 
 // Client-side fallback generator in case backend is loading or disconnected
-function generateClientHvacFallback(presetKey, params) {
-  const isHudsonYards = presetKey === 'nyc_hudson_yards';
-  const isMidtownEast = presetKey === 'nyc_midtown_east';
-  const isBrooklynNavy = presetKey === 'nyc_brooklyn_navy';
-  const isFinancial = presetKey === 'nyc_financial' || (!isHudsonYards && !isMidtownEast && !isBrooklynNavy);
+function generateClientHvacFallback(presetKey, params, customPlan = null) {
+  const isCustom = Boolean(customPlan);
+  const isHudsonYards = !isCustom && presetKey === 'nyc_hudson_yards';
+  const isMidtownEast = !isCustom && presetKey === 'nyc_midtown_east';
+  const isBrooklynNavy = !isCustom && presetKey === 'nyc_brooklyn_navy';
 
-  const buildingName = isHudsonYards
+  const buildingName = isCustom
+    ? (customPlan.name || 'Custom High-Performance Digital Twin')
+    : isHudsonYards
     ? '30 Hudson Yards Supertall (Midtown West, NY)'
     : isMidtownEast
     ? 'Grand Central Plaza Core (Midtown East, NY)'
@@ -725,7 +737,28 @@ function generateClientHvacFallback(presetKey, params) {
     ? 'Brooklyn Navy Yard Tech Hub (East River Waterfront, NY)'
     : 'One World Financial Tower (Financial Canyon, Lower Manhattan, NY)';
 
+  const floorArea = isCustom
+    ? (customPlan.floor_area_m2 || customPlan.area || 28000)
+    : (isHudsonYards ? 45000 : isMidtownEast ? 38000 : isBrooklynNavy ? 22000 : 32000);
+
+  const chillerCap = isCustom
+    ? (customPlan.chiller_capacity_kw || customPlan.chiller || 2600)
+    : (isHudsonYards ? 3800 : isMidtownEast ? 3100 : isBrooklynNavy ? 1800 : 2600);
+
+  const numFloors = isCustom
+    ? (customPlan.num_floors || customPlan.floors || 10)
+    : (isHudsonYards ? 73 : isMidtownEast ? 52 : isBrooklynNavy ? 12 : 45);
+
+  const areaScale = Math.max(0.2, floorArea / 32000);
+  const base_kw = Math.round((isHudsonYards ? 680 : 480) * areaScale);
+
   const hourly = [];
+  let totalBaseKwh = 0;
+  let totalOptKwh = 0;
+  let totalBaseCost = 0;
+  let totalOptCost = 0;
+  let peakShaved = 0;
+
   for (let h = 0; h < 24; h++) {
     const t_amb = isHudsonYards
       ? 23 + 13.8 * Math.sin((h - 8) * 0.25)
@@ -742,21 +775,30 @@ function generateClientHvacFallback(presetKey, params) {
     const isPeakShed = h >= 12 && h <= 17;
 
     let mode = 'MODULATED_MECHANICAL';
-    let chiller_kw = isHudsonYards ? 520 : 380;
+    let chiller_kw = Math.round((isHudsonYards ? 520 : 380) * areaScale);
     if (isEcon) {
       mode = 'FREE_COOLING_ECONOMIZER';
-      chiller_kw = isHudsonYards ? 35 : 25;
+      chiller_kw = Math.round(25 * areaScale);
     } else if (isPrecool) {
       mode = 'PRE_COOLING';
-      chiller_kw = isHudsonYards ? 850 : 620;
+      chiller_kw = Math.round(620 * areaScale * (params?.pre_cooling_aggression || 1.0));
     } else if (isPeakShed) {
       mode = 'PEAK_SHED_COASTING';
-      chiller_kw = isHudsonYards ? 240 : 180;
+      chiller_kw = Math.round(180 * areaScale);
     }
 
     const tariff = isPrecool ? 0.11 : isPeakShed ? (isHudsonYards ? 0.48 : 0.46) : 0.22;
     const tier = isPrecool ? 'OFF_PEAK' : isPeakShed ? 'ON_PEAK' : 'MID_PEAK';
-    const base_kw = isHudsonYards ? 680 : 480;
+    const optCost = Math.round(chiller_kw * tariff * 100) / 100;
+    const baseCost = Math.round(base_kw * tariff * 100) / 100;
+
+    totalBaseKwh += base_kw;
+    totalOptKwh += chiller_kw;
+    totalBaseCost += baseCost;
+    totalOptCost += optCost;
+    if (isPeakShed) {
+      peakShaved = Math.max(peakShaved, base_kw - chiller_kw);
+    }
 
     hourly.push({
       hour: h,
@@ -774,11 +816,11 @@ function generateClientHvacFallback(presetKey, params) {
       tariff_currency: 'USD/kWh',
       mode: mode,
       mode_rationale: isEcon
-        ? 'FortyGuard NYC local microclimate enthalpy is low. 100% Free Fresh Air active.'
+        ? 'FortyGuard local microclimate enthalpy is low. 100% Free Fresh Air active.'
         : isPrecool
-        ? 'Sub-cooling concrete core during ConEdison off-peak tariff window.'
+        ? 'Sub-cooling concrete core during off-peak tariff window.'
         : isPeakShed
-        ? 'Coasting on stored concrete thermal mass during ConEdison peak demand surcharge.'
+        ? 'Coasting on stored concrete thermal mass during peak demand surcharge.'
         : 'Modulated variable-speed mechanical cooling.',
       damper_outdoor_pct: isEcon ? 100 : isPrecool ? 20 : isPeakShed ? 15 : 25,
       damper_recirc_pct: isEcon ? 0 : isPrecool ? 80 : isPeakShed ? 85 : 75,
@@ -786,36 +828,45 @@ function generateClientHvacFallback(presetKey, params) {
       baseline_power_kw: base_kw,
       power_savings_kw: Math.max(0, base_kw - chiller_kw),
       thermal_storage_charge_pct: isPrecool ? 94 : isPeakShed ? 42 : 60,
-      cost_optimized_usd: Math.round(chiller_kw * tariff * 100) / 100,
-      cost_baseline_usd: Math.round(base_kw * tariff * 100) / 100
+      cost_optimized_usd: optCost,
+      cost_baseline_usd: baseCost
     });
   }
 
+  const energySaved = Math.max(0, totalBaseKwh - totalOptKwh);
+  const costSaved = Math.max(0, totalBaseCost - totalOptCost);
+
   return {
     status: 'success',
-    building: { name: buildingName, city: 'New York, NY', floor_area_m2: isHudsonYards ? 45000 : 32000 },
+    building: {
+      name: buildingName,
+      city: customPlan?.city || 'New York, NY',
+      floor_area_m2: floorArea,
+      num_floors: numFloors,
+      chiller_capacity_kw: chillerCap
+    },
     summary: {
-      total_baseline_kwh: isHudsonYards ? 16320 : 11520,
-      total_optimized_kwh: isHudsonYards ? 10880 : 7680,
-      energy_saved_kwh: isHudsonYards ? 5440 : 3840,
-      energy_saved_pct: 33.3,
-      total_baseline_cost_usd: isHudsonYards ? 1795.2 : 1264.8,
-      total_optimized_cost_usd: 792.4,
-      cost_saved_usd: 472.4,
-      cost_saved_pct: 37.3,
-      carbon_avoided_kg_co2: 265.2,
+      total_baseline_kwh: Math.round(totalBaseKwh),
+      total_optimized_kwh: Math.round(totalOptKwh),
+      energy_saved_kwh: Math.round(energySaved),
+      energy_saved_pct: Math.round((energySaved / Math.max(1, totalBaseKwh)) * 1000) / 10,
+      total_baseline_cost_usd: Math.round(totalBaseCost * 10) / 10,
+      total_optimized_cost_usd: Math.round(totalOptCost * 10) / 10,
+      cost_saved_usd: Math.round(costSaved * 10) / 10,
+      cost_saved_pct: Math.round((costSaved / Math.max(1, totalBaseCost)) * 1000) / 10,
+      carbon_avoided_kg_co2: Math.round(energySaved * 0.385 * 10) / 10,
       free_cooling_economizer_hours: 6,
       pre_cooling_hours: 4,
       peak_shed_hours: 6,
-      peak_demand_shaved_kw: 320
+      peak_demand_shaved_kw: peakShaved || Math.round(320 * areaScale)
     },
     hourly_schedule: hourly,
     facade_balance: {
       facades: [
-        { orientation: 'West Façade', heat_flux_wm2: 860, exposure_level: 'CRITICAL_HIGH', vav_damper_target_pct: 94, solar_gain_kw: 980, recommendation: 'Boost VAV cooling airflow; activate smart dynamic glazing.' },
-        { orientation: 'South Façade', heat_flux_wm2: 720, exposure_level: 'HIGH', vav_damper_target_pct: 78, solar_gain_kw: 790, recommendation: 'Maintain moderate cooling stage to prevent perimeter heat soak.' },
-        { orientation: 'East Façade', heat_flux_wm2: 280, exposure_level: 'LOW_SHADED', vav_damper_target_pct: 35, solar_gain_kw: 230, recommendation: 'Throttle VAV damper to 35% to prevent overcooling.' },
-        { orientation: 'North Façade', heat_flux_wm2: 170, exposure_level: 'MINIMAL', vav_damper_target_pct: 25, solar_gain_kw: 110, recommendation: 'Minimum ventilation flow. Heat load negligible.' }
+        { orientation: 'West Façade', heat_flux_wm2: 860, exposure_level: 'CRITICAL_HIGH', vav_damper_target_pct: 94, solar_gain_kw: Math.round(980 * areaScale), recommendation: 'Boost VAV cooling airflow; activate smart dynamic glazing.' },
+        { orientation: 'South Façade', heat_flux_wm2: 720, exposure_level: 'HIGH', vav_damper_target_pct: 78, solar_gain_kw: Math.round(790 * areaScale), recommendation: 'Maintain moderate cooling stage to prevent perimeter heat soak.' },
+        { orientation: 'East Façade', heat_flux_wm2: 280, exposure_level: 'LOW_SHADED', vav_damper_target_pct: 35, solar_gain_kw: Math.round(230 * areaScale), recommendation: 'Throttle VAV damper to 35% to prevent overcooling.' },
+        { orientation: 'North Façade', heat_flux_wm2: 170, exposure_level: 'MINIMAL', vav_damper_target_pct: 25, solar_gain_kw: Math.round(110 * areaScale), recommendation: 'Minimum ventilation flow. Heat load negligible.' }
       ]
     }
   };
