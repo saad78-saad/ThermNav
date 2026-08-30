@@ -519,7 +519,9 @@ export default function AutodeskBuildingViewer({
   onSelectHour,
   activePreset = 'nyc_financial',
   customBuildingPlan = null,
-  theme = 'dark'
+  theme = 'dark',
+  onLocationNotice,
+  onOpenUploadModal
 }) {
   const mountRef = useRef(null);
   const isLight = theme === 'light';
@@ -1551,8 +1553,10 @@ export default function AutodeskBuildingViewer({
             onSubmit={(e) => {
               e.preventDefault();
               if (locationInput.trim()) {
-                setActiveLocationQuery(locationInput.trim());
-                fetchCfdPhysics(locationInput.trim(), isEmptyPlot);
+                const query = locationInput.trim();
+                setActiveLocationQuery(query);
+                fetchCfdPhysics(query, isEmptyPlot);
+                if (onLocationNotice) onLocationNotice(query);
               }
             }}
             className="flex-1 flex items-center gap-2"
@@ -1856,6 +1860,7 @@ export default function AutodeskBuildingViewer({
                   onLocationChange={(newLoc) => {
                     setActiveLocationQuery(newLoc.name);
                     fetchCfdPhysics(newLoc.name, isEmptyPlot);
+                    if (onLocationNotice) onLocationNotice(newLoc.name);
                   }}
                   theme={theme}
                 />

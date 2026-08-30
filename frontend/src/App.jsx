@@ -39,6 +39,8 @@ import {
   X
 } from 'lucide-react';
 import CustomBuildingUploadModal from './components/CustomBuildingUploadModal';
+import ThermalSensorDisclaimerModal from './components/ThermalSensorDisclaimerModal';
+import LocationBlueprintNoticeModal from './components/LocationBlueprintNoticeModal';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://thermshiftai-production.up.railway.app');
@@ -59,6 +61,10 @@ export default function App() {
   const [showEsgModal, setShowEsgModal] = useState(false);
   const [showTourModal, setShowTourModal] = useState(false);
   const [customBuildingPlan, setCustomBuildingPlan] = useState(null);
+
+  // Disclaimer & Location Blueprint Modals
+  const [showDisclaimerModal, setShowDisclaimerModal] = useState(true);
+  const [locationNotice, setLocationNotice] = useState({ isOpen: false, locationName: '' });
 
   // Backend Live Heartbeat State
   const [isBackendConnected, setIsBackendConnected] = useState(false);
@@ -537,6 +543,8 @@ export default function App() {
                   activePreset={activePreset}
                   customBuildingPlan={customBuildingPlan}
                   theme={theme}
+                  onLocationNotice={(locName) => setLocationNotice({ isOpen: true, locationName: locName })}
+                  onOpenUploadModal={() => setShowCustomUploadModal(true)}
                 />
               )}
 
@@ -546,6 +554,13 @@ export default function App() {
             onSelectPreset={(key) => {
               setActivePreset(key);
               setCustomBuildingPlan(null); // Reset custom plan if preset selected
+              const presetLabels = {
+                nyc_financial: 'One World Financial Tower (Financial Canyon, NY)',
+                nyc_hudson_yards: '30 Hudson Yards Supertall (Midtown West, NY)',
+                nyc_midtown_east: 'Grand Central Plaza Core (Midtown East, NY)',
+                nyc_brooklyn_navy: 'Brooklyn Navy Yard Tech Hub (East River Waterfront, NY)'
+              };
+              setLocationNotice({ isOpen: true, locationName: presetLabels[key] || key });
             }}
             selectedHour={selectedHour}
             onSelectHour={setSelectedHour}
@@ -686,6 +701,22 @@ export default function App() {
         onClose={() => setShowTourModal(false)}
         theme={theme}
         onNavigateToBim={() => setActiveRole('bim')}
+      />
+
+      {/* 8. 🌡️ STARTUP INDOOR THERMAL SENSOR & PREDICTIVE DISCLAIMER MODAL */}
+      <ThermalSensorDisclaimerModal
+        isOpen={showDisclaimerModal}
+        onClose={() => setShowDisclaimerModal(false)}
+        theme={theme}
+      />
+
+      {/* 9. 🏢 LOCATION BLUEPRINT ARCHITECTURAL NOTICE MODAL */}
+      <LocationBlueprintNoticeModal
+        isOpen={locationNotice.isOpen}
+        locationName={locationNotice.locationName}
+        onClose={() => setLocationNotice({ isOpen: false, locationName: '' })}
+        onOpenUploadModal={() => setShowCustomUploadModal(true)}
+        theme={theme}
       />
     </div>
   );
