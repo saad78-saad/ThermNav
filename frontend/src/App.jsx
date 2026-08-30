@@ -194,10 +194,24 @@ export default function App() {
             </div>
           </div>
 
-          {/* Role Navigation Buttons */}
+          {/* Role Navigation Buttons (3D Autodesk BIM as Primary Tab 1) */}
           <div className={`hidden md:flex items-center p-1 rounded-2xl border text-xs font-bold ${
             isLight ? 'bg-slate-100/80 border-slate-300' : 'bg-slate-900/90 border-slate-800'
           }`}>
+            <button
+              onClick={() => setActiveRole('bim')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+                activeRole === 'bim'
+                  ? isLight
+                    ? 'bg-slate-950 text-white shadow-md font-black'
+                    : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 shadow-md font-black'
+                  : isLight
+                    ? 'text-cyan-800 hover:text-slate-950'
+                    : 'text-cyan-400 hover:text-white'
+              }`}
+            >
+              <Box className="w-3.5 h-3.5" /> 1. 3D Autodesk Digital Twin
+            </button>
             <button
               onClick={() => setActiveRole('director')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
@@ -210,7 +224,7 @@ export default function App() {
                     : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Zap className="w-3.5 h-3.5" /> 1. Energy Exec
+              <Zap className="w-3.5 h-3.5" /> 2. Energy Director
             </button>
             <button
               onClick={() => setActiveRole('technician')}
@@ -224,7 +238,7 @@ export default function App() {
                     : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Activity className="w-3.5 h-3.5" /> 2. AHU Tech
+              <Activity className="w-3.5 h-3.5" /> 3. AHU Tech
             </button>
             <button
               onClick={() => setActiveRole('esg')}
@@ -238,21 +252,7 @@ export default function App() {
                     : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Compass className="w-3.5 h-3.5" /> 3. Façade/ESG
-            </button>
-            <button
-              onClick={() => setActiveRole('bim')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activeRole === 'bim'
-                  ? isLight
-                    ? 'bg-white text-slate-950 shadow-md ring-1 ring-slate-300 font-black'
-                    : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md font-black'
-                  : isLight
-                    ? 'text-amber-800 hover:text-slate-950'
-                    : 'text-amber-400 hover:text-white'
-              }`}
-            >
-              <Box className="w-3.5 h-3.5" /> 4. 3D Autodesk BIM
+              <Compass className="w-3.5 h-3.5" /> 4. Façade/ESG
             </button>
           </div>
 
@@ -355,33 +355,33 @@ export default function App() {
         </div>
       </header>
 
-      {/* Mobile Role Switcher */}
+      {/* Mobile Role Switcher (3D BIM Twin Primary) */}
       <div className={`md:hidden flex items-center justify-around p-2 text-xs font-bold border-b overflow-x-auto ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
       }`}>
         <button
+          onClick={() => setActiveRole('bim')}
+          className={`px-3 py-1.5 rounded-xl whitespace-nowrap ${activeRole === 'bim' ? (isLight ? 'bg-slate-950 text-white font-black' : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black') : 'text-cyan-400'}`}
+        >
+          1. 3D BIM Twin
+        </button>
+        <button
           onClick={() => setActiveRole('director')}
           className={`px-2.5 py-1.5 rounded-xl whitespace-nowrap ${activeRole === 'director' ? (isLight ? 'bg-slate-950 text-white font-black' : 'bg-cyan-500 text-slate-950 font-black') : 'text-slate-600 dark:text-slate-400'}`}
         >
-          Director
+          2. Director
         </button>
         <button
           onClick={() => setActiveRole('technician')}
           className={`px-2.5 py-1.5 rounded-xl whitespace-nowrap ${activeRole === 'technician' ? (isLight ? 'bg-slate-950 text-white font-black' : 'bg-cyan-500 text-slate-950 font-black') : 'text-slate-600 dark:text-slate-400'}`}
         >
-          AHU Tech
+          3. AHU Tech
         </button>
         <button
           onClick={() => setActiveRole('esg')}
           className={`px-2.5 py-1.5 rounded-xl whitespace-nowrap ${activeRole === 'esg' ? (isLight ? 'bg-slate-950 text-white font-black' : 'bg-cyan-500 text-slate-950 font-black') : 'text-slate-600 dark:text-slate-400'}`}
         >
-          Façade/ESG
-        </button>
-        <button
-          onClick={() => setActiveRole('bim')}
-          className={`px-2.5 py-1.5 rounded-xl whitespace-nowrap ${activeRole === 'bim' ? (isLight ? 'bg-slate-950 text-white font-black' : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black') : 'text-amber-500 dark:text-amber-400'}`}
-        >
-          3D BIM Twin
+          4. Façade/ESG
         </button>
       </div>
 
