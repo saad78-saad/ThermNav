@@ -41,6 +41,7 @@ import {
 import CustomBuildingUploadModal from './components/CustomBuildingUploadModal';
 import ThermalSensorDisclaimerModal from './components/ThermalSensorDisclaimerModal';
 import LocationBlueprintNoticeModal from './components/LocationBlueprintNoticeModal';
+import PageViewInfoModal from './components/PageViewInfoModal';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://thermshiftai-production.up.railway.app');
@@ -60,6 +61,7 @@ export default function App() {
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showEsgModal, setShowEsgModal] = useState(false);
   const [showTourModal, setShowTourModal] = useState(false);
+  const [showPageInfoModal, setShowPageInfoModal] = useState(false);
   const [customBuildingPlan, setCustomBuildingPlan] = useState(null);
 
   // Disclaimer & Location Blueprint Modals
@@ -296,30 +298,16 @@ export default function App() {
             </div>
           </div>
 
-          {/* Quick Action Triggers + Theme Toggle */}
+          {/* Right Action Bar: Page Guide + Theme Toggle */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Page Guide Info Button */}
             <button
-              onClick={() => setShowPitchModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-md shadow-amber-500/20 transition-all cursor-pointer hover:scale-105"
+              onClick={() => setShowPageInfoModal(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition-all cursor-pointer hover:scale-105 shadow-sm"
+              title="View operational details and guide for current view"
             >
-              <Trophy className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">🏆 Pitch Demo</span>
-            </button>
-
-            <button
-              onClick={() => setShowCrisisModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white shadow-md shadow-rose-600/25 transition-all cursor-pointer hover:scale-105"
-            >
-              <Flame className="w-3.5 h-3.5 animate-pulse" />
-              <span className="hidden sm:inline">🔥 Crisis Test</span>
-            </button>
-
-            <button
-              onClick={() => setShowCustomUploadModal(true)}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white shadow-md transition-all cursor-pointer hover:scale-105"
-            >
-              <UploadCloud className="w-3.5 h-3.5" />
-              <span>Upload BIM</span>
+              <Info className="w-4 h-4" />
+              <span className="hidden sm:inline">Page Guide</span>
             </button>
 
             {/* Dark Cyber / Light Snow Theme Switcher */}
@@ -334,7 +322,7 @@ export default function App() {
                 title="Cyber Dark Theme"
               >
                 <Moon className="w-3.5 h-3.5" />
-                <span>Dark</span>
+                <span className="hidden xs:inline">Dark</span>
               </button>
               <button
                 onClick={() => setTheme('light')}
@@ -344,7 +332,7 @@ export default function App() {
                 title="Light Mode"
               >
                 <Sun className="w-3.5 h-3.5 text-amber-500" />
-                <span>Light</span>
+                <span className="hidden xs:inline">Light</span>
               </button>
             </div>
           </div>
@@ -716,6 +704,14 @@ export default function App() {
         locationName={locationNotice.locationName}
         onClose={() => setLocationNotice({ isOpen: false, locationName: '' })}
         onOpenUploadModal={() => setShowCustomUploadModal(true)}
+        theme={theme}
+      />
+
+      {/* 10. ℹ️ DYNAMIC VIEW GUIDE & EXPLANATION MODAL */}
+      <PageViewInfoModal
+        isOpen={showPageInfoModal}
+        onClose={() => setShowPageInfoModal(false)}
+        roleKey={activeRole}
         theme={theme}
       />
     </div>
