@@ -2123,7 +2123,7 @@ export default function AutodeskBuildingViewer({
         {/* Right Side: Meters & Live Neighbor Heat Inspector (4 cols) */}
         <div className="xl:col-span-4 space-y-4 flex flex-col justify-between">
           <div className={`grid grid-cols-3 gap-3 p-5 rounded-3xl border shadow-xl ${
-            isLight ? 'bg-white border-slate-200' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/30' : 'bg-slate-900/90 border-slate-800'
+            isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800'
           }`}>
             <div className="flex flex-col items-center text-center">
               <span className="text-[10px] font-bold text-rose-400 uppercase">Ambient Air</span>
