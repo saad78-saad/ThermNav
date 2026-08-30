@@ -523,42 +523,32 @@ export default function App() {
           <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5 flex-1">
             {/* Dynamic Role Views */}
             <ErrorBoundary theme={theme}>
-              {/* Primary Main View: 3D Autodesk Digital Twin & Microclimate Simulation Hero (Top Right Corner) */}
+              {/* Primary Main View: 3D Autodesk Digital Twin & Microclimate Simulation Hero */}
               {activeRole === 'bim' && (
                 <AutodeskBuildingViewer
                   selectedHour={selectedHour}
+                  onSelectHour={setSelectedHour}
+                  isAutoPlaying={isAutoPlaying}
+                  onToggleAutoPlay={() => setIsAutoPlaying(!isAutoPlaying)}
                   hvacData={hvacData}
                   activePreset={activePreset}
+                  onSelectPreset={(key) => {
+                    setActivePreset(key);
+                    setCustomBuildingPlan(null);
+                    const presetLabels = {
+                      nyc_financial: 'One World Financial Tower (Financial Canyon, NY)',
+                      nyc_hudson_yards: '30 Hudson Yards Supertall (Midtown West, NY)',
+                      nyc_midtown_east: 'Grand Central Plaza Core (Midtown East, NY)',
+                      nyc_brooklyn_navy: 'Brooklyn Navy Yard Tech Hub (East River Waterfront, NY)'
+                    };
+                    setLocationNotice({ isOpen: true, locationName: presetLabels[key] || key });
+                  }}
                   customBuildingPlan={customBuildingPlan}
                   theme={theme}
                   onLocationNotice={(locName) => setLocationNotice({ isOpen: true, locationName: locName })}
                   onOpenUploadModal={() => setShowCustomUploadModal(true)}
                 />
               )}
-
-          {/* Preset Selector & Global 24-Hour Horizon Controller */}
-          <HvacPresetSelector
-            activePreset={activePreset}
-            onSelectPreset={(key) => {
-              setActivePreset(key);
-              setCustomBuildingPlan(null); // Reset custom plan if preset selected
-              const presetLabels = {
-                nyc_financial: 'One World Financial Tower (Financial Canyon, NY)',
-                nyc_hudson_yards: '30 Hudson Yards Supertall (Midtown West, NY)',
-                nyc_midtown_east: 'Grand Central Plaza Core (Midtown East, NY)',
-                nyc_brooklyn_navy: 'Brooklyn Navy Yard Tech Hub (East River Waterfront, NY)'
-              };
-              setLocationNotice({ isOpen: true, locationName: presetLabels[key] || key });
-            }}
-            selectedHour={selectedHour}
-            onSelectHour={setSelectedHour}
-            isAutoPlaying={isAutoPlaying}
-            onToggleAutoPlay={() => setIsAutoPlaying(!isAutoPlaying)}
-            hvacData={hvacData}
-            customBuildingPlan={customBuildingPlan}
-            onOpenCustomModal={() => setShowCustomUploadModal(true)}
-            theme={theme}
-          />
 
           {activeRole === 'director' && (
             <FacilityDirectorView

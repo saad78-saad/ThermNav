@@ -517,7 +517,10 @@ export default function AutodeskBuildingViewer({
   hvacData,
   selectedHour = 14,
   onSelectHour,
+  isAutoPlaying = false,
+  onToggleAutoPlay,
   activePreset = 'nyc_financial',
+  onSelectPreset,
   customBuildingPlan = null,
   theme = 'dark',
   onLocationNotice,
@@ -1893,6 +1896,90 @@ export default function AutodeskBuildingViewer({
                 className="w-full h-full relative cursor-grab active:cursor-grabbing"
               />
 
+              {/* 🎛️ SLEEK VERTICAL Y-AXIS 24-HOUR HORIZON TIME SCRUBBER HUD */}
+              <div className="absolute left-3 top-3 bottom-3 z-30 flex flex-col items-center justify-between p-2 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-cyan-500/40 shadow-2xl font-mono text-[10px] select-none w-14">
+                {/* Current Hour Badge & Auto-Play Toggle */}
+                <div className="flex flex-col items-center gap-1 pb-1 border-b border-slate-800 w-full">
+                  <div className="w-full py-0.5 rounded-md bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black text-[10px] shadow-sm tracking-tight text-center">
+                    {timeLabel}
+                  </div>
+                  {onToggleAutoPlay && (
+                    <button
+                      type="button"
+                      onClick={onToggleAutoPlay}
+                      className={`p-1 rounded-lg border transition-all cursor-pointer ${
+                        isAutoPlaying ? 'bg-rose-600 text-white border-rose-500 shadow-md' : 'bg-slate-800 text-cyan-400 border-slate-700 hover:text-white'
+                      }`}
+                      title={isAutoPlaying ? 'Pause Simulation' : 'Auto-Play Simulation'}
+                    >
+                      {isAutoPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                    </button>
+                  )}
+                </div>
+
+                {/* Quick Jump Periods along Y-Axis */}
+                <div className="flex flex-col items-center justify-between flex-1 py-1 text-[8px] text-slate-400 font-bold w-full">
+                  <button
+                    type="button"
+                    onClick={() => onSelectHour && onSelectHour(23)}
+                    className={`px-1 py-0.5 rounded transition-all cursor-pointer text-center ${selectedHour >= 21 ? 'text-purple-300 font-black bg-purple-950/60 border border-purple-500/40' : 'hover:text-white'}`}
+                    title="23:00 Night Radiative Cooling"
+                  >
+                    🌙 23h
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onSelectHour && onSelectHour(18)}
+                    className={`px-1 py-0.5 rounded transition-all cursor-pointer text-center ${selectedHour >= 17 && selectedHour < 21 ? 'text-orange-300 font-black bg-orange-950/60 border border-orange-500/40' : 'hover:text-white'}`}
+                    title="18:00 Evening Peak End"
+                  >
+                    🌆 18h
+                  </button>
+
+                  {/* Vertical Range Slider Input */}
+                  <div className="relative h-28 flex items-center justify-center my-0.5">
+                    <input
+                      type="range"
+                      min="0"
+                      max="23"
+                      step="1"
+                      value={selectedHour}
+                      onChange={(e) => onSelectHour && onSelectHour(parseInt(e.target.value))}
+                      className="cursor-pointer accent-cyan-400 h-24 w-1.5"
+                      style={{
+                        writingMode: 'bt-lr',
+                        WebkitAppearance: 'slider-vertical'
+                      }}
+                      title={`Hour ${selectedHour}:00`}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => onSelectHour && onSelectHour(14)}
+                    className={`px-1 py-0.5 rounded transition-all cursor-pointer text-center ${selectedHour >= 11 && selectedHour <= 16 ? 'text-amber-300 font-black bg-amber-950/60 border border-amber-500/40' : 'hover:text-white'}`}
+                    title="14:00 Solar Heat Peak"
+                  >
+                    ☀️ 14h
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onSelectHour && onSelectHour(6)}
+                    className={`px-1 py-0.5 rounded transition-all cursor-pointer text-center ${selectedHour >= 5 && selectedHour <= 10 ? 'text-cyan-300 font-black bg-cyan-950/60 border border-cyan-500/40' : 'hover:text-white'}`}
+                    title="06:00 Pre-Cooling"
+                  >
+                    ❄️ 06h
+                  </button>
+                </div>
+
+                {/* Bottom Outdoor Temp */}
+                <div className="pt-1 border-t border-slate-800 text-[8px] text-rose-400 font-bold text-center w-full">
+                  {rawAmbient}°C
+                </div>
+              </div>
+
               {/* 3D Camera Controls + Enlarge Button */}
               <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
                 <button
@@ -1930,7 +2017,7 @@ export default function AutodeskBuildingViewer({
                 </button>
               </div>
 
-              <div className="absolute bottom-3 left-3 z-20 px-2.5 py-1 rounded-lg bg-slate-950/90 border border-cyan-500/40 text-[10px] font-mono text-cyan-300">
+              <div className="absolute bottom-3 left-20 z-20 px-2.5 py-1 rounded-lg bg-slate-950/90 border border-cyan-500/40 text-[10px] font-mono text-cyan-300">
                 🏢 <strong>3D Autodesk BIM Simulation Twin</strong>
               </div>
             </div>
@@ -1939,7 +2026,7 @@ export default function AutodeskBuildingViewer({
             {/* 🏢 3D FLOATING THERMAL HUD OVERLAY FOR ALL 4 SIDES & NEIGHBORS */}
             {/* ========================================================================= */}
             {viewportMode !== 'GOOGLE_MAPS_THERMAL_GIS' && showNeighborTemps && (
-              <div className="absolute top-3 left-3 pointer-events-none space-y-1.5 z-20 font-mono text-[10px]">
+              <div className="absolute top-3 left-20 pointer-events-none space-y-1.5 z-20 font-mono text-[10px]">
                 <div className="px-2 py-1 rounded-md bg-slate-950/90 border border-cyan-500/40 text-cyan-400 font-bold tracking-wider uppercase text-[9px]">
                   Live 150m Surrounding Thermal Impact (Hour {selectedHour}:00):
                 </div>
@@ -2469,14 +2556,6 @@ export default function AutodeskBuildingViewer({
             >
               💨 AHU Plume Shield
             </button>
-            <button
-              onClick={() => setActivePhysicsTab('companies')}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activePhysicsTab === 'companies' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-black' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              🏢 Company Tenants
-            </button>
           </div>
         </div>
 
@@ -2622,73 +2701,6 @@ export default function AutodeskBuildingViewer({
                 SAVINGS: $148.00 / afternoon
               </span>
             </div>
-          </div>
-        )}
-
-        {activePhysicsTab === 'companies' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            {floorProfiles.map((fl, idx) => {
-              const isSelected = selectedFloorIndex === idx;
-              const tenant = fl.tenantHvac;
-
-              return (
-                <div
-                  key={fl.floorNumber}
-                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
-                    isSelected ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-400 shadow-md' : 'bg-slate-950 border-slate-800'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="font-mono font-black text-xs px-2.5 py-0.5 rounded-lg bg-slate-800 text-cyan-300">
-                        Floor {fl.floorNumber} ({fl.elevationM}m)
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-gradient-to-r ${tenant.badgeBg}`}>
-                        {tenant.shortCode}
-                      </span>
-                    </div>
-
-                    <div className="mb-2">
-                      <label className="block text-[10px] text-slate-400 font-bold uppercase mb-1">Tenant HVAC</label>
-                      <select
-                        value={floorTenantState[idx] || 'GOOGLE_UFAD'}
-                        onChange={(e) => setFloorCompany(idx, e.target.value)}
-                        className="w-full p-1.5 rounded-xl border border-slate-700 bg-slate-900 text-xs font-bold text-white focus:ring-1 focus:ring-cyan-500 cursor-pointer"
-                      >
-                        {Object.values(COMPANY_HVAC_CATALOG).map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.company}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <p className="text-[11px] text-slate-400 leading-snug mb-3">
-                      {tenant.systemName}
-                    </p>
-
-                    <div className="space-y-1 text-xs font-mono pt-2 border-t border-slate-800 text-slate-300">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Airflow:</span>
-                        <strong className="text-cyan-400">{fl.airflowCfm.toLocaleString()} CFM ({fl.damperPct}%)</strong>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Zone Temp:</span>
-                        <strong className="text-emerald-400">{fl.targetTemp}°C</strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setSelectedFloorIndex(isSelected ? null : idx)}
-                    className="mt-3 pt-2 border-t border-slate-800 text-[10px] font-bold flex items-center justify-between text-slate-400 hover:text-white cursor-pointer"
-                  >
-                    <span>{isSelected ? '✓ Floor Isolated in 3D' : 'Isolate in 3D'}</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              );
-            })}
           </div>
         )}
       </div>
