@@ -1884,149 +1884,56 @@ export default function AutodeskBuildingViewer({
             </div>
           </div>
 
-          {/* Viewport Mount Container (Dual Split View Default, or Full 3D / Full Map) */}
+          {/* Viewport Mount Container: Full 3D BIM Simulation Workstation */}
           <div className="relative w-full overflow-hidden rounded-2xl">
-            {/* 1. ⚡ DUAL VIEW (80% 3D DIGITAL TWIN + 20% OPENSTREETMAP MINI-MAP BY DEFAULT) */}
-            {viewportMode === 'DUAL_SPLIT_VIEW' ? (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 w-full">
-                {/* Left 80% Space: 3D Autodesk BIM Simulation Twin */}
-                <div className="lg:col-span-9 xl:col-span-9 relative w-full h-[520px] min-h-[400px] sm:min-h-[520px] rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
-                  <div
-                    ref={mountRef}
-                    className="w-full h-full relative cursor-grab active:cursor-grabbing"
-                  />
+            {/* 🏢 1. MAIN 3D AUTODESK BIM SIMULATION TWIN (FULL DEDICATED SPACE) */}
+            <div className="relative w-full h-[520px] min-h-[400px] sm:min-h-[520px] rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+              <div
+                ref={mountRef}
+                className="w-full h-full relative cursor-grab active:cursor-grabbing"
+              />
 
-                  {/* 3D Camera Controls + Enlarge Button */}
-                  <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
-                    <button
-                      onClick={() => setIsSimModalOpen(true)}
-                      className="p-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black shadow-md cursor-pointer transition-all flex items-center gap-1 text-[10px]"
-                      title="Enlarge 3D Digital Twin into Full Screen Modal"
-                    >
-                      <Maximize2 className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Enlarge 3D</span>
-                    </button>
-                    <button
-                      onClick={() => zoomCamera(0.85)}
-                      className="p-2 rounded-xl bg-slate-950/85 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
-                      title="Zoom In"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => zoomCamera(1.15)}
-                      className="p-2 rounded-xl bg-slate-950/85 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
-                      title="Zoom Out"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setCameraAngle('ISO')}
-                      className="p-2 rounded-xl bg-slate-950/85 hover:bg-slate-900 text-cyan-400 border border-slate-700 shadow-md cursor-pointer transition-all"
-                      title="Reset North / Center"
-                    >
-                      <Navigation className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  <div className="absolute bottom-3 left-3 z-20 px-2.5 py-1 rounded-lg bg-slate-950/90 border border-cyan-500/40 text-[10px] font-mono text-cyan-300">
-                    🏢 <strong>3D Autodesk BIM Simulation Twin (80%)</strong>
-                  </div>
-                </div>
-
-                {/* Right 20% Space: Compact OpenStreetMap Mini-Map (Clickable to Enlarge into Pop-up Modal) */}
-                <div
-                  onClick={() => setIsMapModalOpen(true)}
-                  className="lg:col-span-3 xl:col-span-3 relative w-full h-[520px] min-h-[260px] sm:min-h-[520px] rounded-2xl border border-amber-500/40 bg-slate-950 overflow-hidden shadow-2xl group cursor-pointer"
-                  title="Click to Enlarge Full-Screen OpenStreetMap GIS Modal"
+              {/* 3D Camera Controls + Enlarge Button */}
+              <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
+                <button
+                  type="button"
+                  onClick={() => setIsSimModalOpen(true)}
+                  className="p-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black shadow-md cursor-pointer transition-all flex items-center gap-1 text-[10px]"
+                  title="Enlarge 3D Digital Twin into Full Screen Modal"
                 >
-                  <OpenStreetMicroclimateMap
-                    lat={cfdData?.metadata?.lat || (activePreset === 'nyc_hudson_yards' ? 40.7536 : activePreset === 'nyc_midtown_east' ? 40.7527 : activePreset === 'nyc_brooklyn_navy' ? 40.7018 : 40.7061)}
-                    lng={cfdData?.metadata?.lng || (activePreset === 'nyc_hudson_yards' ? -74.0016 : activePreset === 'nyc_midtown_east' ? -73.9772 : activePreset === 'nyc_brooklyn_navy' ? -73.9723 : -74.0092)}
-                    locationName={activeLocationQuery || cfdData?.metadata?.target_location || (activePreset === 'nyc_hudson_yards' ? '30 Hudson Yards, NY' : activePreset === 'nyc_midtown_east' ? 'Grand Central, NY' : activePreset === 'nyc_brooklyn_navy' ? 'Brooklyn Navy Yard, NY' : 'Manhattan Financial Canyon, NY')}
-                    selectedHour={selectedHour}
-                    ambientTemp={rawAmbient}
-                    neighbors={currentNeighbors}
-                    onSelectNeighbor={(n) => setSelectedNeighbor(n)}
-                    onLocationChange={(newLoc) => {
-                      setActiveLocationQuery(newLoc.name);
-                      fetchCfdPhysics(newLoc.name, isEmptyPlot);
-                      if (onLocationNotice) onLocationNotice(newLoc.name);
-                    }}
-                    theme={theme}
-                  />
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Enlarge 3D</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => zoomCamera(0.85)}
+                  className="p-2 rounded-xl bg-slate-950/85 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
+                  title="Zoom In"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => zoomCamera(1.15)}
+                  className="p-2 rounded-xl bg-slate-950/85 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
+                  title="Zoom Out"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCameraAngle('ISO')}
+                  className="p-2 rounded-xl bg-slate-950/85 hover:bg-slate-900 text-cyan-400 border border-slate-700 shadow-md cursor-pointer transition-all"
+                  title="Reset North / Center"
+                >
+                  <Navigation className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
-                  {/* Click to Enlarge Map Banner */}
-                  <div className="absolute top-2 left-2 right-2 z-[1001] pointer-events-auto">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsMapModalOpen(true);
-                      }}
-                      className="w-full px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] font-mono shadow-xl border border-white flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-102"
-                    >
-                      <Maximize2 className="w-3.5 h-3.5" />
-                      <span>🔍 Enlarge OpenStreetMap (20%)</span>
-                    </button>
-                  </div>
-                </div>
+              <div className="absolute bottom-3 left-3 z-20 px-2.5 py-1 rounded-lg bg-slate-950/90 border border-cyan-500/40 text-[10px] font-mono text-cyan-300">
+                🏢 <strong>3D Autodesk BIM Simulation Twin</strong>
               </div>
-            ) : viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? (
-              /* 2. 🗺️ FULL OPENSTREETMAP GIS VIEWPORT */
-              <div className="w-full h-[520px] min-h-[420px] sm:min-h-[520px]">
-                <OpenStreetMicroclimateMap
-                  lat={cfdData?.metadata?.lat || (activePreset === 'nyc_hudson_yards' ? 40.7536 : activePreset === 'nyc_midtown_east' ? 40.7527 : activePreset === 'nyc_brooklyn_navy' ? 40.7018 : 40.7061)}
-                  lng={cfdData?.metadata?.lng || (activePreset === 'nyc_hudson_yards' ? -74.0016 : activePreset === 'nyc_midtown_east' ? -73.9772 : activePreset === 'nyc_brooklyn_navy' ? -73.9723 : -74.0092)}
-                  locationName={activeLocationQuery || cfdData?.metadata?.target_location || (activePreset === 'nyc_hudson_yards' ? '30 Hudson Yards Supertall, NY' : activePreset === 'nyc_midtown_east' ? 'Grand Central Plaza Core, NY' : activePreset === 'nyc_brooklyn_navy' ? 'Brooklyn Navy Yard Tech Hub, NY' : 'Manhattan Financial Canyon, New York, NY')}
-                  selectedHour={selectedHour}
-                  ambientTemp={rawAmbient}
-                  neighbors={currentNeighbors}
-                  onSelectNeighbor={(n) => setSelectedNeighbor(n)}
-                  onLocationChange={(newLoc) => {
-                    setActiveLocationQuery(newLoc.name);
-                    fetchCfdPhysics(newLoc.name, isEmptyPlot);
-                    if (onLocationNotice) onLocationNotice(newLoc.name);
-                  }}
-                  theme={theme}
-                />
-              </div>
-            ) : (
-              /* 3. 🏢 FULL 3D AUTODESK BIM & FLIR VIEWPORT */
-              <div className="relative w-full">
-                <div
-                  ref={mountRef}
-                  className={`w-full h-[520px] min-h-[420px] sm:min-h-[520px] rounded-2xl relative cursor-grab active:cursor-grabbing border overflow-hidden ${
-                    isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-950 border-slate-800'
-                  }`}
-                />
-
-                {/* 3D Camera Zoom & Navigation Controls */}
-                <div className="absolute top-4 right-4 flex flex-col gap-1.5 z-20">
-                  <button
-                    onClick={() => zoomCamera(0.85)}
-                    className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
-                    title="Zoom In"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => zoomCamera(1.15)}
-                    className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
-                    title="Zoom Out"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setCameraAngle('ISO')}
-                    className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-cyan-400 border border-slate-700 shadow-md cursor-pointer transition-all"
-                    title="Reset North / Center"
-                  >
-                    <Navigation className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
+            </div>
 
             {/* ========================================================================= */}
             {/* 🏢 3D FLOATING THERMAL HUD OVERLAY FOR ALL 4 SIDES & NEIGHBORS */}
@@ -2454,6 +2361,63 @@ export default function AutodeskBuildingViewer({
               </div>
             );
           })()}
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 🗺️ 3. DEDICATED STANDALONE OPENSTREETMAP GIS MICROCLIMATE SECTION */}
+      {/* ========================================================================= */}
+      <div className={`rounded-3xl p-5 shadow-xl border overflow-hidden ${
+        isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
+      }`}>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <span className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-sm">
+              🗺️
+            </span>
+            <div>
+              <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                OpenStreetMap GIS Microclimate Telemetry
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-[10px] font-bold">
+                  150m UHI Radius Live
+                </span>
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Interactive street-level GIS tracking real-time surface flux, surrounding building footprints, and solar trajectories
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsMapModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs font-mono shadow-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-102"
+              title="Open Full-Screen OpenStreetMap GIS Modal"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>🔍 Enlarge Map Modal</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Standalone Full-Width Interactive Map */}
+        <div className="w-full h-[480px] min-h-[380px] sm:min-h-[480px] rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-inner">
+          <OpenStreetMicroclimateMap
+            lat={cfdData?.metadata?.lat || (activePreset === 'nyc_hudson_yards' ? 40.7536 : activePreset === 'nyc_midtown_east' ? 40.7527 : activePreset === 'nyc_brooklyn_navy' ? 40.7018 : 40.7061)}
+            lng={cfdData?.metadata?.lng || (activePreset === 'nyc_hudson_yards' ? -74.0016 : activePreset === 'nyc_midtown_east' ? -73.9772 : activePreset === 'nyc_brooklyn_navy' ? -73.9723 : -74.0092)}
+            locationName={activeLocationQuery || cfdData?.metadata?.target_location || (activePreset === 'nyc_hudson_yards' ? '30 Hudson Yards, NY' : activePreset === 'nyc_midtown_east' ? 'Grand Central, NY' : activePreset === 'nyc_brooklyn_navy' ? 'Brooklyn Navy Yard, NY' : 'Manhattan Financial Canyon, NY')}
+            selectedHour={selectedHour}
+            ambientTemp={rawAmbient}
+            neighbors={currentNeighbors}
+            onSelectNeighbor={(n) => setSelectedNeighbor(n)}
+            onLocationChange={(newLoc) => {
+              setActiveLocationQuery(newLoc.name);
+              fetchCfdPhysics(newLoc.name, isEmptyPlot);
+              if (onLocationNotice) onLocationNotice(newLoc.name);
+            }}
+            theme={theme}
+          />
         </div>
       </div>
 
