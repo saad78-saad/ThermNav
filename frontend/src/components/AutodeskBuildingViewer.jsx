@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import OpenStreetMicroclimateMap from './OpenStreetMicroclimateMap';
 import {
   Layers,
   Box,
@@ -1656,7 +1657,7 @@ export default function AutodeskBuildingViewer({
                   viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                🗺️ GIS Map
+                🗺️ OpenStreetMap GIS
               </button>
               <button
                 onClick={() => setViewportMode('FLIR_INFRARED_CFD')}
@@ -1839,34 +1840,101 @@ export default function AutodeskBuildingViewer({
               </button>
             </div>
 
-            {/* Floating Neighbor Temperatures HUD Overlay if Enabled */}
-            {showNeighborTemps && (
+            {/* ========================================================================= */}
+            {/* 🗺️ INTERACTIVE OPENSTREETMAP GIS VIEWPORT WHEN SELECTED */}
+            {/* ========================================================================= */}
+            {viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? (
+              <div className="w-full h-[520px] min-h-[520px]">
+                <OpenStreetMicroclimateMap
+                  lat={cfdData?.metadata?.lat || 40.7061}
+                  lng={cfdData?.metadata?.lng || -74.0092}
+                  locationName={activeLocationQuery || cfdData?.metadata?.target_location || 'Manhattan Financial Canyon, New York, NY'}
+                  selectedHour={selectedHour}
+                  ambientTemp={rawAmbient}
+                  neighbors={currentNeighbors}
+                  onSelectNeighbor={(n) => setSelectedNeighbor(n)}
+                  onLocationChange={(newLoc) => {
+                    setActiveLocationQuery(newLoc.name);
+                    fetchCfdPhysics(newLoc.name, isEmptyPlot);
+                  }}
+                  theme={theme}
+                />
+              </div>
+            ) : null}
+
+            {/* ========================================================================= */}
+            {/* 🏢 3D FLOATING THERMAL HUD OVERLAY FOR ALL 4 SIDES & NEIGHBORS */}
+            {/* ========================================================================= */}
+            {viewportMode !== 'GOOGLE_MAPS_THERMAL_GIS' && showNeighborTemps && (
               <div className="absolute top-3 left-3 pointer-events-none space-y-1.5 z-20 font-mono text-[10px]">
+                <div className="px-2 py-1 rounded-md bg-slate-950/90 border border-cyan-500/40 text-cyan-400 font-bold tracking-wider uppercase text-[9px]">
+                  Live 150m Surrounding Thermal Impact (Hour {selectedHour}:00):
+                </div>
                 {currentNeighbors.map((n) => {
                   const dyn = calculateDynamicNeighborThermal(n, selectedHour, rawAmbient, cfdData);
                   return (
                     <div
                       key={n.id}
-                      className="px-2.5 py-1 rounded-lg backdrop-blur-md shadow-md border flex items-center justify-between gap-2 transition-all duration-300"
+                      className="px-3 py-1.5 rounded-xl backdrop-blur-xl shadow-lg border flex items-center justify-between gap-3 transition-all duration-300 pointer-events-auto cursor-pointer hover:scale-105"
+                      onClick={() => setSelectedNeighbor(n)}
                       style={{
                         backgroundColor: `${dyn.colorCss}25`,
-                        borderColor: `${dyn.colorCss}80`,
+                        borderColor: `${dyn.colorCss}90`,
                         color: dyn.colorCss === '#06b6d4' ? '#67e8f9' : dyn.colorCss === '#10b981' ? '#6ee7b7' : dyn.colorCss === '#eab308' ? '#fde047' : '#fca5a5'
                       }}
                     >
-                      <span>🏢 <strong>{n.name}:</strong></span>
-                      <span className="font-bold">{dyn.tempC}°C ({n.orientation})</span>
+                      <span>🏢 <strong>{n.name?.split('(')[0] || n.name}:</strong></span>
+                      <div className="flex items-center gap-1.5">
+                        <strong className="text-white text-xs">{dyn.tempC}°C</strong>
+                        <span className="opacity-80 text-[9px]">[{n.orientation}]</span>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             )}
 
+            {/* 4-Façade Dynamic Perimeter Thermal Status (West, South, East, North) */}
+            {viewportMode !== 'GOOGLE_MAPS_THERMAL_GIS' && (
+              <div className="absolute top-3 right-16 pointer-events-none hidden md:flex flex-col gap-1.5 z-20 font-mono text-[10px]">
+                <div className="px-2 py-0.5 rounded-md bg-slate-950/90 border border-slate-700 text-slate-400 font-bold uppercase text-[9px]">
+                  Target Building Façades Sol-Air:
+                </div>
+                {(() => {
+                  const westSolAir = Math.round((rawAmbient + (selectedHour >= 12 && selectedHour <= 18 ? 5.8 : 0.8)) * 10) / 10;
+                  const southSolAir = Math.round((rawAmbient + (selectedHour >= 10 && selectedHour <= 16 ? 4.2 : 0.6)) * 10) / 10;
+                  const eastSolAir = Math.round((rawAmbient + (selectedHour >= 6 && selectedHour <= 12 ? 3.5 : 0.4)) * 10) / 10;
+                  const northSolAir = Math.round((rawAmbient + (selectedHour >= 11 && selectedHour <= 15 ? 1.2 : 0.2)) * 10) / 10;
+
+                  return (
+                    <>
+                      <div className="px-2.5 py-1 rounded-lg bg-rose-950/80 border border-rose-500/60 text-rose-300 flex justify-between gap-2 shadow-md">
+                        <span>☀️ West Façade:</span>
+                        <strong>{westSolAir}°C (Damper 95%)</strong>
+                      </div>
+                      <div className="px-2.5 py-1 rounded-lg bg-orange-950/80 border border-orange-500/60 text-orange-300 flex justify-between gap-2 shadow-md">
+                        <span>🔥 South Façade:</span>
+                        <strong>{southSolAir}°C (Damper 78%)</strong>
+                      </div>
+                      <div className="px-2.5 py-1 rounded-lg bg-amber-950/80 border border-amber-500/60 text-amber-300 flex justify-between gap-2 shadow-md">
+                        <span>⛅ East Façade:</span>
+                        <strong>{eastSolAir}°C (Damper 35%)</strong>
+                      </div>
+                      <div className="px-2.5 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/60 text-cyan-300 flex justify-between gap-2 shadow-md">
+                        <span>❄️ North Façade:</span>
+                        <strong>{northSolAir}°C (Damper 25%)</strong>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+
             {/* Bottom Status Ribbon & GIS Thermal Legend */}
             <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none z-20">
-              <div className="px-3 py-1.5 rounded-xl bg-slate-950/80 backdrop-blur-md border border-slate-800 text-[10px] font-mono text-slate-300 flex items-center gap-2 shadow-md">
+              <div className="px-3 py-1.5 rounded-xl bg-slate-950/90 backdrop-blur-md border border-slate-800 text-[10px] font-mono text-slate-300 flex items-center gap-2 shadow-md">
                 <span className="text-cyan-400 font-bold">
-                  {viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? '🗺️ Google Maps Satellite GIS Heatmap' : viewportMode === 'FLIR_INFRARED_CFD' ? '🔥 FLIR Infrared CFD Mode' : isEmptyPlot ? '🏗️ Greenfield Empty Plot Microclimate' : '🏢 3D Autodesk BIM'}
+                  {viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? '🗺️ OpenStreetMap Microclimate GIS Layer' : viewportMode === 'FLIR_INFRARED_CFD' ? '🔥 FLIR Infrared CFD Mode' : isEmptyPlot ? '🏗️ Greenfield Empty Plot Microclimate' : '🏢 3D Autodesk BIM'}
                 </span>
                 <span>•</span>
                 <span className="text-rose-400">
@@ -1875,7 +1943,7 @@ export default function AutodeskBuildingViewer({
               </div>
 
               {/* GIS Thermal Gradient Scale */}
-              <div className="px-3 py-1.5 rounded-xl bg-slate-950/80 backdrop-blur-md border border-slate-800 text-[9px] font-mono text-slate-300 flex items-center gap-2 shadow-md">
+              <div className="px-3 py-1.5 rounded-xl bg-slate-950/90 backdrop-blur-md border border-slate-800 text-[9px] font-mono text-slate-300 flex items-center gap-2 shadow-md">
                 <span>24°C</span>
                 <div className="w-24 h-2 rounded-full bg-gradient-to-r from-blue-500 via-amber-400 to-rose-600" />
                 <span>58°C</span>
