@@ -531,8 +531,8 @@ export default function AutodeskBuildingViewer({
   const [cfdData, setCfdData] = useState(null);
   const [isLoadingCfd, setIsLoadingCfd] = useState(false);
 
-  // View Mode: 'GOOGLE_MAPS_THERMAL_GIS' (OpenStreetMap Default) | '3D_AUTODESK_BIM' | 'FLIR_INFRARED_CFD'
-  const [viewportMode, setViewportMode] = useState('GOOGLE_MAPS_THERMAL_GIS');
+  // View Mode: 'DUAL_SPLIT_VIEW' (3D Twin + OpenStreetMap Default) | '3D_AUTODESK_BIM' | 'GOOGLE_MAPS_THERMAL_GIS' | 'FLIR_INFRARED_CFD'
+  const [viewportMode, setViewportMode] = useState('DUAL_SPLIT_VIEW');
 
   // Location Search & Greenfield Empty Plot Mode
   const [locationInput, setLocationInput] = useState('');
@@ -1710,6 +1710,15 @@ export default function AutodeskBuildingViewer({
             {/* View Mode */}
             <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
               <button
+                onClick={() => setViewportMode('DUAL_SPLIT_VIEW')}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  viewportMode === 'DUAL_SPLIT_VIEW' ? 'bg-gradient-to-r from-cyan-500 to-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                }`}
+                title="View 3D Digital Twin & OpenStreetMap GIS Side-by-Side"
+              >
+                ⚡ Dual (Twin + Map)
+              </button>
+              <button
                 onClick={() => setViewportMode('3D_AUTODESK_BIM')}
                 className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   viewportMode === '3D_AUTODESK_BIM' ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
@@ -1723,7 +1732,7 @@ export default function AutodeskBuildingViewer({
                   viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                🗺️ OpenStreetMap GIS
+                🗺️ Map Full
               </button>
               <button
                 onClick={() => setViewportMode('FLIR_INFRARED_CFD')}
@@ -1873,10 +1882,69 @@ export default function AutodeskBuildingViewer({
             </div>
           </div>
 
-          {/* Viewport Mount Container (OpenStreetMap GIS Default or 3D WebGL BIM Twin) */}
+          {/* Viewport Mount Container (Dual Split View Default, or Full 3D / Full Map) */}
           <div className="relative w-full overflow-hidden rounded-2xl">
-            {/* 1. 🗺️ INTERACTIVE OPENSTREETMAP GIS VIEWPORT (DEFAULT) */}
-            {viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? (
+            {/* 1. ⚡ DUAL SPLIT VIEW (3D DIGITAL TWIN + OPENSTREETMAP GIS SIDE-BY-SIDE BY DEFAULT) */}
+            {viewportMode === 'DUAL_SPLIT_VIEW' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                {/* Left Half: 3D Autodesk BIM Simulation Twin */}
+                <div className="relative w-full h-[520px] min-h-[380px] sm:min-h-[520px] rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden">
+                  <div
+                    ref={mountRef}
+                    className="w-full h-full relative cursor-grab active:cursor-grabbing"
+                  />
+
+                  {/* 3D Camera Controls */}
+                  <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-20">
+                    <button
+                      onClick={() => zoomCamera(0.85)}
+                      className="p-2 rounded-xl bg-slate-950/85 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
+                      title="Zoom In"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => zoomCamera(1.15)}
+                      className="p-2 rounded-xl bg-slate-950/85 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
+                      title="Zoom Out"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setCameraAngle('ISO')}
+                      className="p-2 rounded-xl bg-slate-950/85 hover:bg-slate-900 text-cyan-400 border border-slate-700 shadow-md cursor-pointer transition-all"
+                      title="Reset North / Center"
+                    >
+                      <Navigation className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="absolute bottom-3 left-3 z-20 px-2.5 py-1 rounded-lg bg-slate-950/90 border border-cyan-500/40 text-[10px] font-mono text-cyan-300">
+                    🏢 <strong>3D Autodesk BIM Digital Twin</strong>
+                  </div>
+                </div>
+
+                {/* Right Half: Interactive OpenStreetMap GIS */}
+                <div className="relative w-full h-[520px] min-h-[380px] sm:min-h-[520px] rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden">
+                  <OpenStreetMicroclimateMap
+                    lat={cfdData?.metadata?.lat || (activePreset === 'nyc_hudson_yards' ? 40.7536 : activePreset === 'nyc_midtown_east' ? 40.7527 : activePreset === 'nyc_brooklyn_navy' ? 40.7018 : 40.7061)}
+                    lng={cfdData?.metadata?.lng || (activePreset === 'nyc_hudson_yards' ? -74.0016 : activePreset === 'nyc_midtown_east' ? -73.9772 : activePreset === 'nyc_brooklyn_navy' ? -73.9723 : -74.0092)}
+                    locationName={activeLocationQuery || cfdData?.metadata?.target_location || (activePreset === 'nyc_hudson_yards' ? '30 Hudson Yards Supertall, NY' : activePreset === 'nyc_midtown_east' ? 'Grand Central Plaza Core, NY' : activePreset === 'nyc_brooklyn_navy' ? 'Brooklyn Navy Yard Tech Hub, NY' : 'Manhattan Financial Canyon, New York, NY')}
+                    selectedHour={selectedHour}
+                    ambientTemp={rawAmbient}
+                    neighbors={currentNeighbors}
+                    onSelectNeighbor={(n) => setSelectedNeighbor(n)}
+                    onLocationChange={(newLoc) => {
+                      setActiveLocationQuery(newLoc.name);
+                      fetchCfdPhysics(newLoc.name, isEmptyPlot);
+                      if (onLocationNotice) onLocationNotice(newLoc.name);
+                    }}
+                    theme={theme}
+                  />
+                </div>
+              </div>
+            ) : viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? (
+              /* 2. 🗺️ FULL OPENSTREETMAP GIS VIEWPORT */
               <div className="w-full h-[520px] min-h-[420px] sm:min-h-[520px]">
                 <OpenStreetMicroclimateMap
                   lat={cfdData?.metadata?.lat || (activePreset === 'nyc_hudson_yards' ? 40.7536 : activePreset === 'nyc_midtown_east' ? 40.7527 : activePreset === 'nyc_brooklyn_navy' ? 40.7018 : 40.7061)}
@@ -1895,7 +1963,7 @@ export default function AutodeskBuildingViewer({
                 />
               </div>
             ) : (
-              /* 2. 🏢 3D AUTODESK BIM & FLIR VIEWPORT */
+              /* 3. 🏢 FULL 3D AUTODESK BIM & FLIR VIEWPORT */
               <div className="relative w-full">
                 <div
                   ref={mountRef}
