@@ -506,6 +506,7 @@ def execute_12h_autodesk_cfd_simulation(
                     "surface_emissivity": 0.92,
                     "solar_reflectance_index": 42.0,
                     "specular_reflection_active": False,
+                    "has_plume": False,
                     "plume_exhaust_temp_c": 48.0,
                     "emissivity": 0.92,
                     "base_surface_temp_c": 44.5,
@@ -523,6 +524,7 @@ def execute_12h_autodesk_cfd_simulation(
                     "surface_emissivity": 0.88,
                     "solar_reflectance_index": 55.0,
                     "specular_reflection_active": False,
+                    "has_plume": True,
                     "plume_exhaust_temp_c": 52.0,
                     "emissivity": 0.88,
                     "base_surface_temp_c": 48.2,
@@ -540,6 +542,7 @@ def execute_12h_autodesk_cfd_simulation(
                     "surface_emissivity": 0.85,
                     "solar_reflectance_index": 78.0,
                     "specular_reflection_active": True,
+                    "has_plume": True,
                     "plume_exhaust_temp_c": 56.5,
                     "emissivity": 0.85,
                     "base_surface_temp_c": 54.0,
@@ -557,6 +560,7 @@ def execute_12h_autodesk_cfd_simulation(
                     "surface_emissivity": 0.94,
                     "solar_reflectance_index": 32.0,
                     "specular_reflection_active": False,
+                    "has_plume": False,
                     "plume_exhaust_temp_c": 42.0,
                     "emissivity": 0.94,
                     "base_surface_temp_c": 36.8,
@@ -761,7 +765,7 @@ def execute_12h_autodesk_cfd_simulation(
                 "net_facade_heat_flux_wm2": round(net_facade_heat_flux, 1),
                 "perimeter_vav_cfm": perimeter_vav_cfm,
                 "vav_damper_target_pct": vav_damper_target_pct,
-                "radiant_plume_interference": neighbor["has_plume"] and hour >= 13 and hour <= 17
+                "radiant_plume_interference": neighbor.get("has_plume", False) and hour >= 13 and hour <= 17
             })
 
             # Energy Accumulator
