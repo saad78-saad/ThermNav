@@ -1537,146 +1537,114 @@ export default function AutodeskBuildingViewer({
   const cfdFacades = cfdCurrentHour?.facades || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* ========================================================================= */}
-      {/* 🎮 INTEGRATED 3D BIM COCKPIT (INTERNAL CONTROL SIDEBAR + 3D VIEWPORT AT TOP) */}
+      {/* 🧭 1. TOP HORIZONTAL HVAC MISSION CONTROL BAR */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-
-        {/* 🎛️ INTERNAL SIMULATION CONTROLLER SIDEBAR (Left 4 cols) */}
-        <div className={`lg:col-span-4 rounded-3xl p-5 border shadow-xl space-y-4 transition-all ${
-          isLight ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-800 backdrop-blur-md'
-        }`}>
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center gap-2">
-              <Compass className="w-4 h-4 text-cyan-400 animate-pulse" />
-              <h4 className={`text-xs font-black uppercase tracking-wider ${isLight ? 'text-slate-950' : 'text-white'}`}>
-                Simulation Cockpit
-              </h4>
+      <div className={`p-4 rounded-3xl border shadow-xl space-y-3 transition-all ${
+        isLight ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-800 backdrop-blur-md'
+      }`}>
+        {/* Row 1: Location Geocoder + Site Status Mode Toggle */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (locationInput.trim()) {
+                setActiveLocationQuery(locationInput.trim());
+                fetchCfdPhysics(locationInput.trim(), isEmptyPlot);
+              }
+            }}
+            className="flex-1 flex items-center gap-2"
+          >
+            <div className="relative flex-1">
+              <MapPin className="w-4 h-4 text-cyan-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+                placeholder="Enter Address / Landmark / GPS (e.g. One World Financial, 30 Hudson Yards, Dubai)..."
+                className={`w-full pl-10 pr-3 py-2 rounded-2xl text-xs font-mono font-bold border focus:outline-none transition-all ${
+                  isLight
+                    ? 'bg-slate-50 border-slate-300 text-slate-950 placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-500'
+                    : 'bg-slate-950 border-slate-700 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-400'
+                }`}
+              />
             </div>
-            <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-              FortyGuard LTM
-            </span>
-          </div>
-
-          {/* 📍 1. Location Geocoder & Address Search */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-cyan-400" />
-              <span>Facility Location Search</span>
-            </label>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (locationInput.trim()) {
-                  setActiveLocationQuery(locationInput.trim());
-                  fetchCfdPhysics(locationInput.trim(), isEmptyPlot);
-                }
-              }}
-              className="space-y-2"
+            <button
+              type="submit"
+              disabled={isLoadingCfd}
+              className="px-4 py-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-black text-xs shadow-md cursor-pointer disabled:opacity-50 transition-all shrink-0"
             >
-              <div className="relative">
-                <MapPin className="w-3.5 h-3.5 text-cyan-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={locationInput}
-                  onChange={(e) => setLocationInput(e.target.value)}
-                  placeholder="Address / Landmark / GPS..."
-                  className={`w-full pl-8 pr-3 py-2 rounded-xl text-xs font-mono font-bold border focus:outline-none transition-all ${
-                    isLight
-                      ? 'bg-slate-50 border-slate-300 text-slate-950 placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-500'
-                      : 'bg-slate-950 border-slate-700 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-400'
-                  }`}
-                />
-              </div>
+              {isLoadingCfd ? 'Simulating...' : '📍 Simulate Site'}
+            </button>
+          </form>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="submit"
-                  disabled={isLoadingCfd}
-                  className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-black text-[11px] shadow-md cursor-pointer disabled:opacity-50 transition-all"
-                >
-                  {isLoadingCfd ? 'Simulating...' : '📍 Simulate Site'}
-                </button>
+          {/* Target BIM vs Greenfield Plot Toggle */}
+          <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-mono shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setIsEmptyPlot(false);
+                fetchCfdPhysics(activeLocationQuery, false);
+              }}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                !isEmptyPlot ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🏢 Target BIM Facility
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsEmptyPlot(true);
+                fetchCfdPhysics(activeLocationQuery, true);
+              }}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                isEmptyPlot ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🏗️ Greenfield Plot
+            </button>
+          </div>
+        </div>
 
-                {/* Target vs Greenfield Site */}
-                <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEmptyPlot(false);
-                      fetchCfdPhysics(activeLocationQuery, false);
-                    }}
-                    className={`px-2 py-1 rounded-lg transition-all cursor-pointer ${
-                      !isEmptyPlot ? 'bg-cyan-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                    }`}
-                    title="Simulate 3D Autodesk BIM Facility"
-                  >
-                    🏢 Facility
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEmptyPlot(true);
-                      fetchCfdPhysics(activeLocationQuery, true);
-                    }}
-                    className={`px-2 py-1 rounded-lg transition-all cursor-pointer ${
-                      isEmptyPlot ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                    }`}
-                    title="Simulate Greenfield Empty Soil Plot"
-                  >
-                    🏗️ Plot
-                  </button>
-                </div>
-              </div>
-            </form>
-
-            {/* Compact Location Presets */}
-            <div className="space-y-1 pt-1">
-              <span className="text-[9px] font-bold uppercase text-slate-400">Quick Global Presets:</span>
-              <div className="flex flex-wrap gap-1">
-                {[
-                  { label: 'One World Financial', query: 'One World Financial Tower, Lower Manhattan, NY' },
-                  { label: '30 Hudson Yards', query: '30 Hudson Yards, New York, NY' },
-                  { label: 'Grand Central', query: 'Grand Central Plaza, 42nd St, New York, NY' },
-                  { label: 'Empire State', query: 'Empire State Building, 350 5th Ave, NY' },
-                  { label: 'Brooklyn Navy Yard', query: 'Building 77, Brooklyn Navy Yard, NY' },
-                  { label: 'Dubai Burj District', query: 'Downtown Dubai, UAE' }
-                ].map((loc) => (
-                  <button
-                    key={loc.label}
-                    type="button"
-                    onClick={() => {
-                      setLocationInput(loc.query);
-                      setActiveLocationQuery(loc.query);
-                      fetchCfdPhysics(loc.query, isEmptyPlot);
-                    }}
-                    className={`text-[9px] px-2 py-1 rounded-lg border font-mono transition-all cursor-pointer ${
-                      activeLocationQuery === loc.query
-                        ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-sm'
-                        : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
-                    }`}
-                  >
-                    {loc.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+        {/* Row 2: Presets, View Mode, Season, Speed & Floor Level Selectors */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-800/80 text-xs font-mono">
+          {/* Quick Location Pills */}
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-[10px] text-slate-400 uppercase font-bold pr-1">Presets:</span>
+            {[
+              { label: 'One World Financial', query: 'One World Financial Tower, Lower Manhattan, NY' },
+              { label: '30 Hudson Yards', query: '30 Hudson Yards, New York, NY' },
+              { label: 'Grand Central', query: 'Grand Central Plaza, 42nd St, New York, NY' },
+              { label: 'Dubai Burj District', query: 'Downtown Dubai, UAE' }
+            ].map((loc) => (
+              <button
+                key={loc.label}
+                type="button"
+                onClick={() => {
+                  setLocationInput(loc.query);
+                  setActiveLocationQuery(loc.query);
+                  fetchCfdPhysics(loc.query, isEmptyPlot);
+                }}
+                className={`text-[10px] px-2.5 py-1 rounded-xl border transition-all cursor-pointer ${
+                  activeLocationQuery === loc.query
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-sm'
+                    : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                }`}
+              >
+                {loc.label}
+              </button>
+            ))}
           </div>
 
-          {/* 🌍 2. Environment View & Climate Season */}
-          <div className="space-y-2 pt-2 border-t border-slate-800">
-            <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center justify-between">
-              <span>View Mode & Season</span>
-            </label>
-
-            {/* View Mode Toggle */}
-            <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold text-center">
+          {/* View Modes + Season + Sim Speed */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* View Mode */}
+            <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
               <button
                 onClick={() => setViewportMode('3D_AUTODESK_BIM')}
-                className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   viewportMode === '3D_AUTODESK_BIM' ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -1684,7 +1652,7 @@ export default function AutodeskBuildingViewer({
               </button>
               <button
                 onClick={() => setViewportMode('GOOGLE_MAPS_THERMAL_GIS')}
-                className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -1692,7 +1660,7 @@ export default function AutodeskBuildingViewer({
               </button>
               <button
                 onClick={() => setViewportMode('FLIR_INFRARED_CFD')}
-                className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   viewportMode === 'FLIR_INFRARED_CFD' ? 'bg-purple-600 text-white font-black shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -1700,143 +1668,64 @@ export default function AutodeskBuildingViewer({
               </button>
             </div>
 
-            {/* Season Switcher & Sim Speed */}
-            <div className="flex items-center justify-between gap-2 text-xs">
-              <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-mono">
-                <button
-                  type="button"
-                  onClick={() => setClimateSeason('summer')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                    climateSeason === 'summer' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  ☀️ Summer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setClimateSeason('winter')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                    climateSeason === 'winter' ? 'bg-cyan-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  ❄️ Winter
-                </button>
+            {/* Climate Season */}
+            <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px]">
+              <button
+                type="button"
+                onClick={() => setClimateSeason('summer')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  climateSeason === 'summer' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                ☀️ Summer
+              </button>
+              <button
+                type="button"
+                onClick={() => setClimateSeason('winter')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  climateSeason === 'winter' ? 'bg-cyan-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                ❄️ Winter
+              </button>
+            </div>
+
+            {/* Speed & Freeze */}
+            <div className="flex items-center gap-1">
+              <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[9px]">
+                {[1, 2, 5].map((spd) => (
+                  <button
+                    key={spd}
+                    onClick={() => setSimSpeed(spd)}
+                    className={`px-1.5 py-0.5 rounded-md font-bold transition-all cursor-pointer ${
+                      simSpeed === spd ? 'bg-cyan-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {spd}x
+                  </button>
+                ))}
               </div>
-
-              {/* Speed & Freeze */}
-              <div className="flex items-center gap-1">
-                <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[9px] font-mono">
-                  {[1, 2, 5].map((spd) => (
-                    <button
-                      key={spd}
-                      onClick={() => setSimSpeed(spd)}
-                      className={`px-1.5 py-0.5 rounded-md font-bold transition-all cursor-pointer ${
-                        simSpeed === spd ? 'bg-cyan-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      {spd}x
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsAutoRotate(!isAutoRotate)}
-                  className={`p-1.5 rounded-xl border text-[10px] font-bold transition-all cursor-pointer ${
-                    isAutoRotate ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black' : 'bg-slate-950 text-slate-400 border-slate-800'
-                  }`}
-                  title={isAutoRotate ? 'Rotation ON' : 'Rotation OFF (Steady)'}
-                >
-                  {isAutoRotate ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* 🏢 3. Floor Slicing & Layers */}
-          <div className="space-y-2 pt-2 border-t border-slate-800">
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
-                <Layers className="w-3 h-3 text-cyan-400" />
-                <span>Floor Level Slicing</span>
-              </label>
               <button
-                onClick={() => setSelectedFloorIndex(null)}
-                className={`text-[9px] font-bold px-2 py-0.5 rounded-md border cursor-pointer ${
-                  selectedFloorIndex === null ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black' : 'bg-slate-950 text-slate-400 border-slate-800'
+                type="button"
+                onClick={() => setIsAutoRotate(!isAutoRotate)}
+                className={`p-1.5 rounded-xl border text-[10px] font-bold transition-all cursor-pointer ${
+                  isAutoRotate ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black' : 'bg-slate-950 text-slate-400 border-slate-800'
                 }`}
+                title={isAutoRotate ? 'Auto-Rotate ON' : 'Steady / Freeze (OFF)'}
               >
-                All (Stack)
-              </button>
-            </div>
-
-            <div className="grid grid-cols-5 gap-1 font-mono text-[10px]">
-              {floorProfiles.map((fl, idx) => (
-                <button
-                  key={fl.floorNumber}
-                  type="button"
-                  onClick={() => setSelectedFloorIndex(selectedFloorIndex === idx ? null : idx)}
-                  className={`py-1 rounded-lg border font-bold text-center transition-all cursor-pointer ${
-                    selectedFloorIndex === idx
-                      ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-sm'
-                      : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'
-                  }`}
-                >
-                  F{fl.floorNumber}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 🔬 4. Physics Toggles Grid */}
-          <div className="space-y-1.5 pt-2 border-t border-slate-800 text-[10px] font-bold">
-            <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Physics HUD Toggles</span>
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                onClick={() => setShowPeople(!showPeople)}
-                className={`px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
-                  showPeople ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-slate-950 text-slate-500 border-slate-800'
-                }`}
-              >
-                <Users className="w-3 h-3 text-cyan-400" />
-                <span>Occupants: {showPeople ? 'ON' : 'OFF'}</span>
-              </button>
-
-              <button
-                onClick={() => setShowNeighborTemps(!showNeighborTemps)}
-                className={`px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
-                  showNeighborTemps ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-slate-950 text-slate-500 border-slate-800'
-                }`}
-              >
-                <Thermometer className="w-3 h-3 text-rose-400" />
-                <span>Side Temps: {showNeighborTemps ? 'ON' : 'OFF'}</span>
-              </button>
-
-              <button
-                onClick={() => setShowAirflowParticles(!showAirflowParticles)}
-                className={`px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
-                  showAirflowParticles ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-slate-950 text-slate-500 border-slate-800'
-                }`}
-              >
-                <Wind className="w-3 h-3 text-cyan-400" />
-                <span>Airflow: {showAirflowParticles ? 'ON' : 'OFF'}</span>
-              </button>
-
-              <button
-                onClick={() => setShowRadiationRays(!showRadiationRays)}
-                className={`px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
-                  showRadiationRays ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-slate-950 text-slate-500 border-slate-800'
-                }`}
-              >
-                <Sun className="w-3 h-3 text-amber-400" />
-                <span>Solar Rays: {showRadiationRays ? 'ON' : 'OFF'}</span>
+                {isAutoRotate ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               </button>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* 🏢 3D VIEWPORT CANVAS AREA (Right 8 cols) */}
-        <div className={`lg:col-span-8 rounded-3xl p-5 shadow-xl border relative overflow-hidden flex flex-col justify-between ${
+      {/* ========================================================================= */}
+      {/* 🏢 2. ENTERPRISE 3D DIGITAL TWIN & REAL-TIME TELEMETRY WORKSTATION */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+        {/* Left Side: 3D Viewport Canvas Container (8 cols) */}
+        <div className={`xl:col-span-8 rounded-3xl p-5 shadow-xl border relative overflow-hidden flex flex-col justify-between ${
           isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
         }`}>
           {/* Floor Level Selector Strip for HVAC Team */}
@@ -2231,8 +2120,8 @@ export default function AutodeskBuildingViewer({
           </div>
         </div>
 
-        {/* Right Side: Meters & Live Neighbor Heat Inspector */}
-        <div className="xl:col-span-5 space-y-4 flex flex-col justify-between">
+        {/* Right Side: Meters & Live Neighbor Heat Inspector (4 cols) */}
+        <div className="xl:col-span-4 space-y-4 flex flex-col justify-between">
           <div className="grid grid-cols-3 gap-3 p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl">
             <div className="flex flex-col items-center text-center">
               <span className="text-[10px] font-bold text-rose-400 uppercase">Ambient Air</span>
