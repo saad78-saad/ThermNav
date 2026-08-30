@@ -44,6 +44,7 @@ import CustomBuildingUploadModal from './components/CustomBuildingUploadModal';
 import LocationBlueprintNoticeModal from './components/LocationBlueprintNoticeModal';
 import PageViewInfoModal from './components/PageViewInfoModal';
 import ThreeMinutePitchVideoModal from './components/ThreeMinutePitchVideoModal';
+import StartupSetupPromptModal from './components/StartupSetupPromptModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { VoiceAssistantProvider, VoiceHoverCard, useVoiceAssistant } from './components/VoiceNarrationAssistant';
 
@@ -67,6 +68,7 @@ function AppInner({ theme, setTheme }) {
   const [activeRole, setActiveRole] = useState('bim');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('nyc_financial');
+  const [showStartupPromptModal, setShowStartupPromptModal] = useState(true); // Prompts on startup
   const [showApiSuiteModal, setShowApiSuiteModal] = useState(false);
   const [showUserManualModal, setShowUserManualModal] = useState(false);
   const [showCustomUploadModal, setShowCustomUploadModal] = useState(false);
@@ -425,6 +427,22 @@ function AppInner({ theme, setTheme }) {
               </VoiceHoverCard>
 
               <VoiceHoverCard
+                title="Custom Location & 3D Blueprint Setup"
+                voiceText="Enter your custom facility address or upload a 3D CAD/BIM blueprint to run live calculations."
+              >
+                <button
+                  onClick={() => setShowStartupPromptModal(true)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 shadow-md shadow-emerald-500/20 hover:scale-[1.02] transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <span>🌍</span>
+                    <span>Custom Site & 3D Setup</span>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded bg-slate-950/20 text-[9px] font-mono font-bold">Setup</span>
+                </button>
+              </VoiceHoverCard>
+
+              <VoiceHoverCard
                 title="60-Second Pitch Demo"
                 voiceText="Opens the sixty-second executive hackathon pitch walkthrough."
               >
@@ -634,6 +652,25 @@ function AppInner({ theme, setTheme }) {
       </div>
 
       {/* MODALS */}
+      {/* 0. 🌍 STARTUP CUSTOM LOCATION & 3D BLUEPRINT SETUP PROMPT MODAL */}
+      <StartupSetupPromptModal
+        isOpen={showStartupPromptModal}
+        onClose={() => setShowStartupPromptModal(false)}
+        onApplyLocationAndBlueprint={({ location, coords, customPlan }) => {
+          if (coords) {
+            setActiveLocationCoords(coords);
+          }
+          if (customPlan) {
+            handleApplyCustomSimulation(customPlan);
+          } else if (coords) {
+            fetchHvacOptimization(activePreset, hvacParams, null);
+          }
+          setActiveRole('bim');
+        }}
+        onOpenUploadModal={() => setShowCustomUploadModal(true)}
+        theme={theme}
+      />
+
       {/* 1. FORTYGUARD API SUITE MODAL */}
       <FortyGuardApiSuiteModal
         isOpen={showApiSuiteModal}
