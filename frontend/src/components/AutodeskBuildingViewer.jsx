@@ -73,7 +73,7 @@ import {
   Settings2
 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://thermshiftai-production.up.railway.app');
 
 // Dynamic 24-Hour Surrounding Neighbor Thermal Calculator (FortyGuard / Autodesk CFD API Telemetry)
 const calculateDynamicNeighborThermal = (neighbor, hour = 14, baseAmbient = 34.5, cfdData = null) => {

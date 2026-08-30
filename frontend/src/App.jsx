@@ -41,7 +41,7 @@ import {
 import CustomBuildingUploadModal from './components/CustomBuildingUploadModal';
 import ErrorBoundary from './components/ErrorBoundary';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://thermshiftai-production.up.railway.app');
 
 export default function App() {
   // Theme: 'dark' (Default high-contrast cyberpunk dark mode) | 'light'
@@ -59,6 +59,10 @@ export default function App() {
   const [showEsgModal, setShowEsgModal] = useState(false);
   const [showTourModal, setShowTourModal] = useState(false);
   const [customBuildingPlan, setCustomBuildingPlan] = useState(null);
+
+  // Backend Live Heartbeat State
+  const [isBackendConnected, setIsBackendConnected] = useState(false);
+  const [apiLatencyMs, setApiLatencyMs] = useState(null);
 
   // Global 24-Hour Horizon Simulation State (Shared across all roles)
   const [selectedHour, setSelectedHour] = useState(14); // 14:00 peak heat default
@@ -80,6 +84,28 @@ export default function App() {
     nyc_brooklyn_navy: { lat: 40.7018, lng: -73.9723 },
   };
 
+  // Ping Backend Health on Mount & Periodic Check
+  useEffect(() => {
+    const checkHealth = async () => {
+      const startTime = performance.now();
+      try {
+        const res = await fetch(`${API_BASE}/health`, { method: 'GET' });
+        if (res.ok) {
+          const latency = Math.round(performance.now() - startTime);
+          setIsBackendConnected(true);
+          setApiLatencyMs(latency);
+        } else {
+          setIsBackendConnected(false);
+        }
+      } catch (err) {
+        setIsBackendConnected(false);
+      }
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Auto-play 24-hour simulation slider
   useEffect(() => {
     let interval;
@@ -94,6 +120,7 @@ export default function App() {
   // Fetch HVAC Optimization Schedule from backend
   const fetchHvacOptimization = async (presetKey, params) => {
     setIsLoadingHvac(true);
+    const startTime = performance.now();
     try {
       const res = await fetch(`${API_BASE}/api/hvac/optimize`, {
         method: 'POST',
@@ -108,6 +135,8 @@ export default function App() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setHvacData(data);
+      setIsBackendConnected(true);
+      setApiLatencyMs(Math.round(performance.now() - startTime));
     } catch (err) {
       console.warn('[HVAC API warning] Falling back to client simulator:', err);
       // Fallback robust simulation data generator
@@ -199,10 +228,18 @@ export default function App() {
                 <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] font-mono font-bold">
                   v2.4 PROD
                 </span>
-                <span className="hidden xl:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  FortyGuard BMS
-                </span>
+                <button
+                  onClick={() => setShowApiSuiteModal(true)}
+                  className={`hidden xl:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border transition-all cursor-pointer hover:scale-105 ${
+                    isBackendConnected
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                      : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                  }`}
+                  title="Click to view live FortyGuard & FastAPI Network Suite"
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${isBackendConnected ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
+                  <span>{isBackendConnected ? `Railway Live API (${apiLatencyMs || 85}ms)` : 'Client Fallback Engine'}</span>
+                </button>
               </div>
               <p className={`text-[11px] hidden sm:block font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 Hyperlocal Microclimate Predictive HVAC & 3D Autodesk BIM Twin
