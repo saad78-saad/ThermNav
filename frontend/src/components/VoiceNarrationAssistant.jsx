@@ -35,22 +35,17 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
       synthRef.current.cancel();
     }
     setIsSpeaking(false);
-    setIsStartupNoticeActive(false); // Unlocks hover voices immediately if dismissed
+    setIsStartupNoticeActive(false);
     setActiveSpeech(null);
   }, []);
 
+  // Speak function (triggers audio synthesis)
   const speak = useCallback((title, text, options = {}) => {
-    // If the on-enter startup notice is currently speaking and this is a hover request, don't interrupt
-    if (isStartupNoticeActive && !options.isStartup && !options.force) {
-      return;
-    }
-
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Small debounce to avoid audio jitter on fast mouse sweeps
-    const delay = options.immediate ? 0 : 200;
+    const delay = options.immediate ? 0 : 100;
 
     debounceTimerRef.current = setTimeout(() => {
       if (!synthRef.current) return;
@@ -84,14 +79,7 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
         utterance.onend = () => {
           setIsSpeaking(false);
           if (options.isStartup) {
-            setIsStartupNoticeActive(false); // Startup finished -> Unlock hover voices!
-          }
-
-          // Auto-hide non-startup hover tooltips after speech completes
-          if (!options.isStartup) {
-            setTimeout(() => {
-              setActiveSpeech(prev => (prev && prev.text === text ? null : prev));
-            }, 3000);
+            setIsStartupNoticeActive(false);
           }
         };
 
@@ -100,7 +88,7 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
           setIsStartupNoticeActive(false);
         };
 
-        // Pick preferred natural voice
+        // Pick preferred natural English voice
         const voices = synthRef.current.getVoices();
         const preferredVoice = voices.find(v =>
           v.lang.startsWith('en') &&
@@ -118,21 +106,37 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
         setIsStartupNoticeActive(false);
       }
     }, delay);
-  }, [isMuted, isStartupNoticeActive]);
+  }, [isMuted]);
 
-  // Initial On-Enter Voice Notice (Runs automatically by default on page load)
+  // Show visual tooltip on hover WITHOUT auto-speaking (audio only on click)
+  const showTooltip = useCallback((title, text) => {
+    if (isStartupNoticeActive) return; // Don't replace startup notice while it is speaking
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      setActiveSpeech({
+        title: title || 'Component Overview',
+        text: text,
+        isStartup: false,
+        timestamp: Date.now()
+      });
+    }, 80);
+  }, [isStartupNoticeActive]);
+
+  // Automated 2-Part Introduction (First Voice + Product Overview) on Page Load
   useEffect(() => {
-    const startupText = "Welcome to ThermoShift AI. Please note: internal building temperatures shown in this simulation are assumed and modeled based on standard engineering conventions. For real-world deployments, live indoor temperatures should be collected directly from physical IoT thermal sensors. Once this introduction concludes, hover over any building component, simulation control, or map feature for interactive voice explanations.";
-    const startupTitle = "Engineering Sensor Convention & Platform Guide";
+    const startupCombinedText = "Please note: internal building temperatures are assumed and modeled based on standard engineering conventions. For real-world deployments, live indoor temperatures should be collected directly from physical IoT thermal sensors. Welcome to ThermoShift AI: the Hyperlocal Microclimate Digital Twin and Predictive HVAC Optimization Platform. We ingest Autodesk 3D BIM models, FortyGuard street canyon sensor streams, and ConEdison tariff arbitrage to shave peak power demand and eliminate carbon penalties. Hover over any component to view detailed tooltips, and click the Voice button to listen to audio explanations.";
+    const startupTitle = "Engineering Sensor Notice & Platform Overview";
 
     const timer = setTimeout(() => {
-      speak(startupTitle, startupText, { isStartup: true, immediate: true });
-    }, 800);
+      speak(startupTitle, startupCombinedText, { isStartup: true, immediate: true, force: true });
+    }, 700);
 
-    // Modern browser audio unlock fallback on first user touch/interaction
+    // Modern browser gesture unlock fallback
     const handleFirstGesture = () => {
       if (synthRef.current && !synthRef.current.speaking && activeSpeech?.isStartup) {
-        speak(startupTitle, startupText, { isStartup: true, immediate: true });
+        speak(startupTitle, startupCombinedText, { isStartup: true, immediate: true, force: true });
       }
       window.removeEventListener('pointerdown', handleFirstGesture);
       window.removeEventListener('keydown', handleFirstGesture);
@@ -152,7 +156,7 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
   }, [speak]);
 
   return (
-    <VoiceContext.Provider value={{ speak, cancelSpeech, isMuted, setIsMuted, isSpeaking, activeSpeech, isStartupNoticeActive }}>
+    <VoiceContext.Provider value={{ speak, showTooltip, cancelSpeech, isMuted, setIsMuted, isSpeaking, activeSpeech, isStartupNoticeActive }}>
       {children}
 
       {/* ========================================================================= */}
@@ -165,7 +169,7 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
               ? 'bg-white/95 border-cyan-300 text-slate-900 shadow-cyan-900/20'
               : 'bg-slate-950/95 border-cyan-500/50 text-slate-100 shadow-2xl shadow-cyan-500/20'
           }`}>
-            {/* Header with Wave Indicator & Cancel Button */}
+            {/* Header with Wave Indicator & Actions */}
             <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-800/80">
               <div className="flex items-center gap-2">
                 <span className="p-1.5 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center">
@@ -176,7 +180,7 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
                     <span>{activeSpeech.title}</span>
                     {activeSpeech.isStartup && (
                       <span className="px-1.5 py-0.2 rounded-md bg-amber-500 text-slate-950 font-mono text-[9px] font-bold">
-                        Startup Notice
+                        Auto Introduction
                       </span>
                     )}
                   </h4>
@@ -184,37 +188,42 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
                     {isSpeaking ? (
                       <>
                         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-                        Speaking Voice Note...
+                        Speaking Audio Voice Note...
                       </>
                     ) : (
-                      'Voice Ready • Hover for notes'
+                      'Tooltip Active • Click Voice Button to Listen'
                     )}
                   </span>
                 </div>
               </div>
 
-              {/* Cancel Button (✕) */}
+              {/* Cancel Button (✕) & Play Button */}
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => speak(activeSpeech.title, activeSpeech.text, { immediate: true, force: true })}
-                  className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-white transition-all cursor-pointer text-xs"
-                  title="Replay Voice Note"
+                  className={`p-1.5 rounded-lg transition-all cursor-pointer text-xs flex items-center gap-1 ${
+                    isSpeaking
+                      ? 'bg-cyan-500 text-slate-950 font-bold'
+                      : 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40'
+                  }`}
+                  title="Click to Listen / Play Voice Audio"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <Volume2 className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold">{isSpeaking ? 'Replay' : 'Listen'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={cancelSpeech}
-                  className="p-1 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-white transition-all cursor-pointer text-xs"
-                  title="Close & Stop Voice (Cancel)"
+                  className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-white transition-all cursor-pointer text-xs"
+                  title="Close & Dismiss (Cancel)"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Transcript Text */}
+            {/* Transcript / Explanation Text */}
             <p className="text-xs leading-relaxed text-slate-300 font-sans">
               {activeSpeech.text}
             </p>
@@ -223,17 +232,21 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
             <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-slate-800/80 text-[10px] font-mono text-slate-400">
               <button
                 type="button"
-                onClick={() => setIsMuted(!isMuted)}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
-                  isMuted ? 'bg-rose-950/60 text-rose-300 border-rose-500/40' : 'bg-slate-900 text-slate-300 border-slate-700 hover:text-white'
-                }`}
+                onClick={() => {
+                  if (isSpeaking) {
+                    cancelSpeech();
+                  } else {
+                    speak(activeSpeech.title, activeSpeech.text, { immediate: true, force: true });
+                  }
+                }}
+                className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-bold cursor-pointer"
               >
-                {isMuted ? <VolumeX className="w-3 h-3 text-rose-400" /> : <Volume2 className="w-3 h-3 text-cyan-400" />}
-                <span>{isMuted ? 'Hover Audio Muted' : 'Hover Audio Active'}</span>
+                <Volume2 className="w-3 h-3" />
+                <span>{isSpeaking ? 'Stop Voice Note' : '🔊 Play Spoken Voice Note'}</span>
               </button>
 
               <span className="text-[9px] text-slate-500">
-                Hover any card for voice guide
+                Hover any card for tooltip
               </span>
             </div>
           </div>
@@ -244,14 +257,14 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
 }
 
 /**
- * Reusable wrapper component for adding hover voice notes with speech synthesis to any group or button.
+ * Reusable wrapper component for adding hover tooltips with on-demand click-to-speak voice notes.
  */
 export function VoiceHoverCard({ title, voiceText, children, className = '', onMouseLeaveCustom }) {
-  const { speak } = useVoiceAssistant();
+  const { showTooltip, speak } = useVoiceAssistant();
 
   const handleMouseEnter = () => {
     if (voiceText) {
-      speak(title || 'Component Guide', voiceText);
+      showTooltip(title || 'Component Guide', voiceText);
     }
   };
 
