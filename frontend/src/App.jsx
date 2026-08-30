@@ -387,25 +387,36 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Preset Selector & Global Building Status */}
-        <HvacPresetSelector
-          activePreset={activePreset}
-          onSelectPreset={(key) => {
-            setActivePreset(key);
-            setCustomBuildingPlan(null); // Reset custom plan if preset selected
-          }}
-          selectedHour={selectedHour}
-          onSelectHour={setSelectedHour}
-          isAutoPlaying={isAutoPlaying}
-          onToggleAutoPlay={() => setIsAutoPlaying(!isAutoPlaying)}
-          hvacData={hvacData}
-          customBuildingPlan={customBuildingPlan}
-          onOpenCustomModal={() => setShowCustomUploadModal(true)}
-          theme={theme}
-        />
-
         {/* Dynamic Role Views */}
         <ErrorBoundary theme={theme}>
+          {/* Primary Main View: 3D Autodesk Digital Twin & Microclimate Simulation Hero */}
+          {activeRole === 'bim' && (
+            <AutodeskBuildingViewer
+              selectedHour={selectedHour}
+              hvacData={hvacData}
+              activePreset={activePreset}
+              customBuildingPlan={customBuildingPlan}
+              theme={theme}
+            />
+          )}
+
+          {/* Preset Selector & Global 24-Hour Horizon Controller */}
+          <HvacPresetSelector
+            activePreset={activePreset}
+            onSelectPreset={(key) => {
+              setActivePreset(key);
+              setCustomBuildingPlan(null); // Reset custom plan if preset selected
+            }}
+            selectedHour={selectedHour}
+            onSelectHour={setSelectedHour}
+            isAutoPlaying={isAutoPlaying}
+            onToggleAutoPlay={() => setIsAutoPlaying(!isAutoPlaying)}
+            hvacData={hvacData}
+            customBuildingPlan={customBuildingPlan}
+            onOpenCustomModal={() => setShowCustomUploadModal(true)}
+            theme={theme}
+          />
+
           {activeRole === 'director' && (
             <FacilityDirectorView
               hvacData={hvacData}
@@ -437,16 +448,6 @@ export default function App() {
               activePreset={activePreset}
               theme={theme}
               onOpenEsgModal={() => setShowEsgModal(true)}
-            />
-          )}
-
-          {activeRole === 'bim' && (
-            <AutodeskBuildingViewer
-              selectedHour={selectedHour}
-              hvacData={hvacData}
-              activePreset={activePreset}
-              customBuildingPlan={customBuildingPlan}
-              theme={theme}
             />
           )}
         </ErrorBoundary>
