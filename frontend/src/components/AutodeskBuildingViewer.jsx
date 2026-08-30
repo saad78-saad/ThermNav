@@ -737,11 +737,15 @@ export default function AutodeskBuildingViewer({
     cameraRef.current = camera;
     
     if (viewportMode === 'GOOGLE_MAPS_THERMAL_GIS') {
-      camera.position.set(0, 62, 54);
+      camera.position.set(0, 75, 65);
       camera.lookAt(0, 0, 0);
     } else {
-      // Default Comfortable Zoomed-Out Architectural Perspective (Full BIM + Surrounding Towers + Sky)
-      camera.position.set(28, 20, 36);
+      // Spacious Zoomed-Out Architectural Perspective (Full BIM + Surrounding Towers + Solar Rays + Street Canyon)
+      const isMobile = width < 768;
+      const startX = isMobile ? 48 : 38;
+      const startY = isMobile ? 32 : 26;
+      const startZ = isMobile ? 58 : 48;
+      camera.position.set(startX, startY, startZ);
       camera.lookAt(0, (numFloors * floorHeight) / 2 - 1, 0);
     }
 
@@ -1594,16 +1598,17 @@ export default function AutodeskBuildingViewer({
       camera.position.set(8, 9.5, 12);
       camera.lookAt(0, 8.5, 0);
     } else if (viewName === 'ISO') {
-      camera.position.set(28, 20, 36);
+      const isMobile = (mountRef.current?.clientWidth || 800) < 768;
+      camera.position.set(isMobile ? 48 : 38, isMobile ? 32 : 26, isMobile ? 58 : 48);
       camera.lookAt(0, (numFloors * floorHeight) / 2 - 1, 0);
     } else if (viewName === 'FRONT') {
-      camera.position.set(0, 16, 42);
+      camera.position.set(0, 24, 56);
       camera.lookAt(0, (numFloors * floorHeight) / 2 - 1, 0);
     } else if (viewName === 'TOP') {
-      camera.position.set(0, 68, 0);
+      camera.position.set(0, 85, 0);
       camera.lookAt(0, 0, 0);
     } else if (viewName === 'WEST_RADIATION') {
-      camera.position.set(-46, 22, 0);
+      camera.position.set(-56, 28, 0);
       camera.lookAt(0, (numFloors * floorHeight) / 2 - 1, 0);
     }
   };

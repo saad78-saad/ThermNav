@@ -456,6 +456,14 @@ function AppInner({ theme, setTheme }) {
           </div>
         </aside>
 
+        {/* Mobile Sidebar Overlay Backdrop */}
+        {isSidebarOpen && (
+          <div
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-sm lg:hidden transition-opacity cursor-pointer"
+          />
+        )}
+
         {/* ========================================================================= */}
         {/* 💻 MAIN CONTENT WORKSPACE (EXPANDED TO FULL RIGHT WIDTH) */}
         {/* ========================================================================= */}
