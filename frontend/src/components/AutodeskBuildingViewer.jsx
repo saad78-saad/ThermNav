@@ -531,8 +531,10 @@ export default function AutodeskBuildingViewer({
   const [cfdData, setCfdData] = useState(null);
   const [isLoadingCfd, setIsLoadingCfd] = useState(false);
 
-  // View Mode: 'DUAL_SPLIT_VIEW' (3D Twin + OpenStreetMap Default) | '3D_AUTODESK_BIM' | 'GOOGLE_MAPS_THERMAL_GIS' | 'FLIR_INFRARED_CFD'
+  // View Mode: 'DUAL_SPLIT_VIEW' (3D Twin 80% + OpenStreetMap 20% Default) | '3D_AUTODESK_BIM' | 'GOOGLE_MAPS_THERMAL_GIS' | 'FLIR_INFRARED_CFD'
   const [viewportMode, setViewportMode] = useState('DUAL_SPLIT_VIEW');
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [isSimModalOpen, setIsSimModalOpen] = useState(false);
 
   // Location Search & Greenfield Empty Plot Mode
   const [locationInput, setLocationInput] = useState('');
@@ -1884,18 +1886,26 @@ export default function AutodeskBuildingViewer({
 
           {/* Viewport Mount Container (Dual Split View Default, or Full 3D / Full Map) */}
           <div className="relative w-full overflow-hidden rounded-2xl">
-            {/* 1. ⚡ DUAL SPLIT VIEW (3D DIGITAL TWIN + OPENSTREETMAP GIS SIDE-BY-SIDE BY DEFAULT) */}
+            {/* 1. ⚡ DUAL VIEW (80% 3D DIGITAL TWIN + 20% OPENSTREETMAP MINI-MAP BY DEFAULT) */}
             {viewportMode === 'DUAL_SPLIT_VIEW' ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                {/* Left Half: 3D Autodesk BIM Simulation Twin */}
-                <div className="relative w-full h-[520px] min-h-[380px] sm:min-h-[520px] rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 w-full">
+                {/* Left 80% Space: 3D Autodesk BIM Simulation Twin */}
+                <div className="lg:col-span-9 xl:col-span-9 relative w-full h-[520px] min-h-[400px] sm:min-h-[520px] rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
                   <div
                     ref={mountRef}
                     className="w-full h-full relative cursor-grab active:cursor-grabbing"
                   />
 
-                  {/* 3D Camera Controls */}
-                  <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-20">
+                  {/* 3D Camera Controls + Enlarge Button */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
+                    <button
+                      onClick={() => setIsSimModalOpen(true)}
+                      className="p-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black shadow-md cursor-pointer transition-all flex items-center gap-1 text-[10px]"
+                      title="Enlarge 3D Digital Twin into Full Screen Modal"
+                    >
+                      <Maximize2 className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Enlarge 3D</span>
+                    </button>
                     <button
                       onClick={() => zoomCamera(0.85)}
                       className="p-2 rounded-xl bg-slate-950/85 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
@@ -1920,16 +1930,20 @@ export default function AutodeskBuildingViewer({
                   </div>
 
                   <div className="absolute bottom-3 left-3 z-20 px-2.5 py-1 rounded-lg bg-slate-950/90 border border-cyan-500/40 text-[10px] font-mono text-cyan-300">
-                    🏢 <strong>3D Autodesk BIM Digital Twin</strong>
+                    🏢 <strong>3D Autodesk BIM Simulation Twin (80%)</strong>
                   </div>
                 </div>
 
-                {/* Right Half: Interactive OpenStreetMap GIS */}
-                <div className="relative w-full h-[520px] min-h-[380px] sm:min-h-[520px] rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden">
+                {/* Right 20% Space: Compact OpenStreetMap Mini-Map (Clickable to Enlarge into Pop-up Modal) */}
+                <div
+                  onClick={() => setIsMapModalOpen(true)}
+                  className="lg:col-span-3 xl:col-span-3 relative w-full h-[520px] min-h-[260px] sm:min-h-[520px] rounded-2xl border border-amber-500/40 bg-slate-950 overflow-hidden shadow-2xl group cursor-pointer"
+                  title="Click to Enlarge Full-Screen OpenStreetMap GIS Modal"
+                >
                   <OpenStreetMicroclimateMap
                     lat={cfdData?.metadata?.lat || (activePreset === 'nyc_hudson_yards' ? 40.7536 : activePreset === 'nyc_midtown_east' ? 40.7527 : activePreset === 'nyc_brooklyn_navy' ? 40.7018 : 40.7061)}
                     lng={cfdData?.metadata?.lng || (activePreset === 'nyc_hudson_yards' ? -74.0016 : activePreset === 'nyc_midtown_east' ? -73.9772 : activePreset === 'nyc_brooklyn_navy' ? -73.9723 : -74.0092)}
-                    locationName={activeLocationQuery || cfdData?.metadata?.target_location || (activePreset === 'nyc_hudson_yards' ? '30 Hudson Yards Supertall, NY' : activePreset === 'nyc_midtown_east' ? 'Grand Central Plaza Core, NY' : activePreset === 'nyc_brooklyn_navy' ? 'Brooklyn Navy Yard Tech Hub, NY' : 'Manhattan Financial Canyon, New York, NY')}
+                    locationName={activeLocationQuery || cfdData?.metadata?.target_location || (activePreset === 'nyc_hudson_yards' ? '30 Hudson Yards, NY' : activePreset === 'nyc_midtown_east' ? 'Grand Central, NY' : activePreset === 'nyc_brooklyn_navy' ? 'Brooklyn Navy Yard, NY' : 'Manhattan Financial Canyon, NY')}
                     selectedHour={selectedHour}
                     ambientTemp={rawAmbient}
                     neighbors={currentNeighbors}
@@ -1941,6 +1955,21 @@ export default function AutodeskBuildingViewer({
                     }}
                     theme={theme}
                   />
+
+                  {/* Click to Enlarge Map Banner */}
+                  <div className="absolute top-2 left-2 right-2 z-[1001] pointer-events-auto">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsMapModalOpen(true);
+                      }}
+                      className="w-full px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] font-mono shadow-xl border border-white flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-102"
+                    >
+                      <Maximize2 className="w-3.5 h-3.5" />
+                      <span>🔍 Enlarge OpenStreetMap (20%)</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? (
@@ -2699,6 +2728,129 @@ export default function AutodeskBuildingViewer({
           </div>
         )}
       </div>
+
+      {/* ========================================================================= */}
+      {/* 🗺️ 1. ENLARGED OPENSTREETMAP GIS POP-UP MODAL */}
+      {/* ========================================================================= */}
+      {isMapModalOpen && (
+        <div className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-6xl h-[88vh] rounded-3xl border border-amber-500/50 bg-slate-900 shadow-2xl overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="p-4 px-6 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-sm">
+                  🗺️
+                </span>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                    OpenStreetMap GIS Microclimate Telemetry
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-mono text-[10px] font-bold">
+                      150m UHI Radius
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Live satellite and street GIS with FortyGuard surface flux & surrounding building thermal loads
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsMapModalOpen(false)}
+                className="p-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm cursor-pointer transition-all hover:scale-105 border border-slate-700"
+              >
+                ✕ Close Map
+              </button>
+            </div>
+
+            {/* Modal Map Content */}
+            <div className="flex-1 w-full relative">
+              <OpenStreetMicroclimateMap
+                lat={cfdData?.metadata?.lat || (activePreset === 'nyc_hudson_yards' ? 40.7536 : activePreset === 'nyc_midtown_east' ? 40.7527 : activePreset === 'nyc_brooklyn_navy' ? 40.7018 : 40.7061)}
+                lng={cfdData?.metadata?.lng || (activePreset === 'nyc_hudson_yards' ? -74.0016 : activePreset === 'nyc_midtown_east' ? -73.9772 : activePreset === 'nyc_brooklyn_navy' ? -73.9723 : -74.0092)}
+                locationName={activeLocationQuery || cfdData?.metadata?.target_location || (activePreset === 'nyc_hudson_yards' ? '30 Hudson Yards Supertall, NY' : activePreset === 'nyc_midtown_east' ? 'Grand Central Plaza Core, NY' : activePreset === 'nyc_brooklyn_navy' ? 'Brooklyn Navy Yard Tech Hub, NY' : 'Manhattan Financial Canyon, New York, NY')}
+                selectedHour={selectedHour}
+                ambientTemp={rawAmbient}
+                neighbors={currentNeighbors}
+                onSelectNeighbor={(n) => {
+                  setSelectedNeighbor(n);
+                  setIsMapModalOpen(false);
+                }}
+                onLocationChange={(newLoc) => {
+                  setActiveLocationQuery(newLoc.name);
+                  fetchCfdPhysics(newLoc.name, isEmptyPlot);
+                  if (onLocationNotice) onLocationNotice(newLoc.name);
+                }}
+                theme={theme}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 🏢 2. ENLARGED 3D SIMULATION POP-UP MODAL */}
+      {/* ========================================================================= */}
+      {isSimModalOpen && (
+        <div className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-6xl h-[88vh] rounded-3xl border border-cyan-500/50 bg-slate-900 shadow-2xl overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="p-4 px-6 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 font-bold text-sm">
+                  🏢
+                </span>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                    Autodesk BIM 3D Digital Twin Workstation
+                    <span className="px-2 py-0.5 rounded-full bg-cyan-500 text-slate-950 font-mono text-[10px] font-bold">
+                      Full-Screen Simulation
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    360° Real-Time Autodesk CFD Thermal Heat Flux & 4-Façade Sol-Air Glare Modeling
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setIsSimModalOpen(false);
+                  setViewportMode('3D_AUTODESK_BIM');
+                }}
+                className="p-2 px-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs cursor-pointer transition-all hover:scale-105 border border-cyan-300"
+              >
+                Switch to Full 3D View ✕
+              </button>
+            </div>
+
+            {/* Modal Info & Close */}
+            <div className="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-4 bg-slate-950/90 text-white">
+              <div className="w-16 h-16 rounded-3xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-3xl">
+                🏢
+              </div>
+              <h4 className="text-xl font-black">Full-Width 3D BIM Twin Activated</h4>
+              <p className="text-sm text-slate-400 max-w-lg">
+                The 3D BIM Twin is rendered directly in WebGL hardware acceleration. Click the button below to expand the main canvas to full width!
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setIsSimModalOpen(false);
+                    setViewportMode('3D_AUTODESK_BIM');
+                  }}
+                  className="px-6 py-2.5 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs shadow-lg cursor-pointer transition-all"
+                >
+                  🚀 Activate Full-Width 3D BIM View
+                </button>
+                <button
+                  onClick={() => setIsSimModalOpen(false)}
+                  className="px-6 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs cursor-pointer transition-all"
+                >
+                  Back to Split View
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
