@@ -43,6 +43,7 @@ import {
 import CustomBuildingUploadModal from './components/CustomBuildingUploadModal';
 import LocationBlueprintNoticeModal from './components/LocationBlueprintNoticeModal';
 import PageViewInfoModal from './components/PageViewInfoModal';
+import ThreeMinutePitchVideoModal from './components/ThreeMinutePitchVideoModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { VoiceAssistantProvider, VoiceHoverCard, useVoiceAssistant } from './components/VoiceNarrationAssistant';
 
@@ -70,6 +71,7 @@ function AppInner({ theme, setTheme }) {
   const [showUserManualModal, setShowUserManualModal] = useState(false);
   const [showCustomUploadModal, setShowCustomUploadModal] = useState(false);
   const [showPitchModal, setShowPitchModal] = useState(false);
+  const [showThreeMinVideoModal, setShowThreeMinVideoModal] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showEsgModal, setShowEsgModal] = useState(false);
   const [showTourModal, setShowTourModal] = useState(false);
@@ -392,8 +394,24 @@ function AppInner({ theme, setTheme }) {
             {/* Quick Interactive Tools & Diagnostics Section */}
             <div className="space-y-1.5 pt-2 border-t border-slate-800">
               <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2 pb-1">
-                Executive Tools & Suites
+                Executive Tools & Video Pitch
               </div>
+
+              <VoiceHoverCard
+                title="3-Minute Executive Product Pitch Video"
+                voiceText="Watch the complete three-minute product pitch video with synchronized voice narration, architectural animations, and financial ROI breakdown."
+              >
+                <button
+                  onClick={() => setShowThreeMinVideoModal(true)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-black bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/25 hover:scale-[1.02] transition-all cursor-pointer ring-1 ring-cyan-300"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="p-1 rounded-lg bg-white/20">🎬</span>
+                    <span>3-Min Product Video</span>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded-md bg-white/20 text-[9px] font-mono font-bold">▶ Play</span>
+                </button>
+              </VoiceHoverCard>
 
               <VoiceHoverCard
                 title="60-Second Pitch Demo"
@@ -642,6 +660,13 @@ function AppInner({ theme, setTheme }) {
       <ExtremeHeatCrisisModal
         isOpen={showCrisisModal}
         onClose={() => setShowCrisisModal(false)}
+        theme={theme}
+      />
+
+      {/* 🎬 3-MINUTE EXECUTIVE PRODUCT PITCH VIDEO MODAL */}
+      <ThreeMinutePitchVideoModal
+        isOpen={showThreeMinVideoModal}
+        onClose={() => setShowThreeMinVideoModal(false)}
         theme={theme}
       />
 
