@@ -1737,34 +1737,34 @@ export default function AutodeskBuildingViewer({
             </div>
           </VoiceHoverCard>
 
-          {/* Working vs Information Toggle + Season + Sim Speed */}
+          {/* Working vs Reading Materials Toggle + Season + Sim Speed */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Primary Working vs Information Categorization Button */}
+            {/* Primary Working vs Reading Side Categorization Button */}
             <VoiceHoverCard
-              title="Working View vs Information Guide"
-              voiceText="Toggle between live interactive operations and the deep physics engineering guide."
+              title="Working Side vs Reading Materials"
+              voiceText="Toggle between live interactive 3D twin operations and the comprehensive engineering reading materials."
             >
               <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
                 <button
                   type="button"
                   onClick={() => setActiveSection('working')}
-                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-                    activeSection === 'working' ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeSection === 'working' ? 'bg-cyan-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
                   }`}
                   title="Interactive 3D Twin & OpenStreetMap GIS Operations"
                 >
-                  <span>🛠️ Working View</span>
+                  <span>🛠️ Working Side</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveSection('information')}
-                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-                    activeSection === 'information' ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeSection === 'information' ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
                   }`}
-                  title="Click to Open Deep Engineering Physics & CFD Theory Reference"
+                  title="Click to Open Deep Engineering Physics & CFD Reading Materials"
                 >
-                  <Info className="w-3 h-3" />
-                  <span>ℹ️ Information Guide</span>
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>📖 Reading & Reference Materials</span>
                 </button>
               </div>
             </VoiceHoverCard>

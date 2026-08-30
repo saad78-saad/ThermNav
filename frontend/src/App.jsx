@@ -404,10 +404,10 @@ function AppInner({ theme, setTheme }) {
               </VoiceHoverCard>
             </div>
 
-            {/* Quick Interactive Tools & Diagnostics Section */}
+            {/* Quick Core Actions */}
             <div className="space-y-1.5 pt-2 border-t border-slate-800">
               <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2 pb-1">
-                Executive Tools & Video Pitch
+                Video Pitch & Setup
               </div>
 
               <VoiceHoverCard
@@ -439,97 +439,6 @@ function AppInner({ theme, setTheme }) {
                     <span>Custom Site & 3D Setup</span>
                   </div>
                   <span className="px-1.5 py-0.5 rounded bg-slate-950/20 text-[9px] font-mono font-bold">Setup</span>
-                </button>
-              </VoiceHoverCard>
-
-              <VoiceHoverCard
-                title="60-Second Pitch Demo"
-                voiceText="Opens the sixty-second executive hackathon pitch walkthrough."
-              >
-                <button
-                  onClick={() => setShowPitchModal(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-all cursor-pointer"
-                >
-                  <Trophy className="w-3.5 h-3.5" />
-                  <span>🏆 60-Sec Pitch Demo</span>
-                </button>
-              </VoiceHoverCard>
-
-              <VoiceHoverCard
-                title="Crisis Stress Test"
-                voiceText="Simulate an extreme urban heatwave and emergency peak demand load shedding."
-              >
-                <button
-                  onClick={() => setShowCrisisModal(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md shadow-rose-600/25 hover:scale-[1.02] transition-all cursor-pointer"
-                >
-                  <Flame className="w-3.5 h-3.5 animate-pulse" />
-                  <span>🔥 Crisis Stress Test</span>
-                </button>
-              </VoiceHoverCard>
-
-              <VoiceHoverCard
-                title="Upload Custom BIM"
-                voiceText="Upload custom Revit IFC BIM building models or DXF blueprint floor plans."
-              >
-                <button
-                  onClick={() => setShowCustomUploadModal(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
-                >
-                  <UploadCloud className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>📁 Upload Custom BIM</span>
-                </button>
-              </VoiceHoverCard>
-
-              <VoiceHoverCard
-                title="Official ESG Certificate"
-                voiceText="Generate official ESG decarbonization certification per Local Law ninety-seven."
-              >
-                <button
-                  onClick={() => setShowEsgModal(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition-all cursor-pointer"
-                >
-                  <Award className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>📜 Official ESG Cert</span>
-                </button>
-              </VoiceHoverCard>
-
-              <VoiceHoverCard
-                title="FortyGuard API Explorer"
-                voiceText="Explore all seven FortyGuard REST API endpoints with live request payloads."
-              >
-                <button
-                  onClick={() => setShowApiSuiteModal(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:border-cyan-500 hover:text-cyan-300 transition-all cursor-pointer"
-                >
-                  <Layers className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>🔬 FortyGuard API (7)</span>
-                </button>
-              </VoiceHoverCard>
-
-              <VoiceHoverCard
-                title="System User Manual"
-                voiceText="Read full engineering specifications, thermal equations, and operational manual."
-              >
-                <button
-                  onClick={() => setShowUserManualModal(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>📖 User Manual & Specs</span>
-                </button>
-              </VoiceHoverCard>
-
-              <VoiceHoverCard
-                title="30-Second Quick Tour"
-                voiceText="Interactive guided walkthrough of the digital twin and H V A C controls."
-              >
-                <button
-                  onClick={() => setShowTourModal(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-300 transition-all cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>💡 30-Sec Quick Tour</span>
                 </button>
               </VoiceHoverCard>
             </div>

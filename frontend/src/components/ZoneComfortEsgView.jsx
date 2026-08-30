@@ -91,7 +91,7 @@ export default function ZoneComfortEsgView({
               activeSection === 'working' ? 'bg-teal-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <span>🛠️ Live Zone Operations</span>
+            <span>🛠️ Working Side</span>
           </button>
           <button
             type="button"
@@ -100,8 +100,7 @@ export default function ZoneComfortEsgView({
               activeSection === 'information' ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Compass className="w-3.5 h-3.5" />
-            <span>ℹ️ ASHRAE & ESG Guide</span>
+            <span>📖 Reading & Reference Materials</span>
           </button>
         </div>
       </div>

@@ -165,7 +165,7 @@ export default function FacilityDirectorView({
               activeSection === 'working' ? 'bg-emerald-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <span>🛠️ Working Operations</span>
+            <span>🛠️ Working Side</span>
           </button>
           <button
             type="button"
@@ -174,8 +174,7 @@ export default function FacilityDirectorView({
               activeSection === 'information' ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Info className="w-3.5 h-3.5" />
-            <span>ℹ️ Information & Tariff Guide</span>
+            <span>📖 Reading & Reference Materials</span>
           </button>
         </div>
       </div>
