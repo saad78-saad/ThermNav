@@ -23,6 +23,7 @@ import {
   Scissors,
   Play,
   Pause,
+  BookOpen,
   ThermometerSnowflake,
   Info,
   Activity,
