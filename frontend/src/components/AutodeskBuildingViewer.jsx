@@ -542,7 +542,7 @@ export default function AutodeskBuildingViewer({
 
   // Simulation Speed: 1x, 2x, 5x
   const [simSpeed, setSimSpeed] = useState(1);
-  const [isAutoRotate, setIsAutoRotate] = useState(false); // Default to steady / freeze for easy reading!
+  const [isAutoRotate, setIsAutoRotate] = useState(true); // Smooth dynamic auto-rotation active by default!
   // Climate Season Mode: 'summer' (Heatwave Peak Cooling) | 'winter' (Sub-Zero Freeze & Heat Recovery)
   const [climateSeason, setClimateSeason] = useState('summer');
 
@@ -1389,9 +1389,65 @@ export default function AutodeskBuildingViewer({
       isDragging = false;
     };
 
-    renderer.domElement.addEventListener('mousedown', onMouseDown);
+    // 📱 Mobile Phone Touch Event Handlers (Swipe to Rotate 360° & Tilt)
+    let prevTouchX = 0;
+    let prevTouchY = 0;
+    let prevTouchDist = 0;
+
+    const onTouchStart = (e) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        prevTouchX = e.touches[0].clientX;
+        prevTouchY = e.touches[0].clientY;
+      } else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        prevTouchDist = Math.sqrt(dx * dx + dy * dy);
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (e.touches.length === 1 && isDragging) {
+        const deltaX = e.touches[0].clientX - prevTouchX;
+        const deltaY = e.touches[0].clientY - prevTouchY;
+
+        buildingGroup.rotation.y += deltaX * 0.012;
+        urbanContextGroup.rotation.y += deltaX * 0.012;
+        radiationGroup.rotation.y += deltaX * 0.012;
+        airflowParticlesGroup.rotation.y += deltaX * 0.012;
+        camera.position.y = Math.max(4, Math.min(85, camera.position.y - deltaY * 0.12));
+        camera.lookAt(0, (numFloors * floorHeight) / 2 - 1, 0);
+
+        prevTouchX = e.touches[0].clientX;
+        prevTouchY = e.touches[0].clientY;
+      } else if (e.touches.length === 2) {
+        // Pinch-to-zoom on mobile
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const touchDist = Math.sqrt(dx * dx + dy * dy);
+        const pinchDelta = (prevTouchDist - touchDist) * 0.08;
+
+        camera.position.x = Math.max(10, Math.min(100, camera.position.x + pinchDelta));
+        camera.position.z = Math.max(10, Math.min(100, camera.position.z + pinchDelta));
+        camera.lookAt(0, (numFloors * floorHeight) / 2 - 1, 0);
+
+        prevTouchDist = touchDist;
+      }
+    };
+
+    const onTouchEnd = () => {
+      isDragging = false;
+    };
+
+    if (renderer?.domElement) {
+      renderer.domElement.style.touchAction = 'none'; // Prevent phone browser scroll conflict
+      renderer.domElement.addEventListener('mousedown', onMouseDown);
+      renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: true });
+    }
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
 
     // Resize Handler via ResizeObserver
     const resizeObserver = new ResizeObserver((entries) => {
@@ -1430,8 +1486,9 @@ export default function AutodeskBuildingViewer({
           if (car2.position.z > 45) car2.position.z = -45;
         }
 
+        // 🔄 Smooth Auto-Rotation across all devices
         if (isAutoRotate && !isDragging && buildingGroup && urbanContextGroup && radiationGroup && airflowParticlesGroup) {
-          const rotSpeed = 0.0008 * simSpeed;
+          const rotSpeed = 0.0016 * simSpeed;
           buildingGroup.rotation.y += rotSpeed;
           urbanContextGroup.rotation.y += rotSpeed;
           radiationGroup.rotation.y += rotSpeed;
@@ -1451,9 +1508,14 @@ export default function AutodeskBuildingViewer({
     return () => {
       if (animId) cancelAnimationFrame(animId);
       resizeObserver.disconnect();
-      renderer.domElement.removeEventListener('mousedown', onMouseDown);
+      if (renderer?.domElement) {
+        renderer.domElement.removeEventListener('mousedown', onMouseDown);
+        renderer.domElement.removeEventListener('touchstart', onTouchStart);
+      }
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
       if (container && renderer?.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
@@ -1713,12 +1775,13 @@ export default function AutodeskBuildingViewer({
               <button
                 type="button"
                 onClick={() => setIsAutoRotate(!isAutoRotate)}
-                className={`p-1.5 rounded-xl border text-[10px] font-bold transition-all cursor-pointer ${
-                  isAutoRotate ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black' : 'bg-slate-950 text-slate-400 border-slate-800'
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[10px] font-bold transition-all cursor-pointer ${
+                  isAutoRotate ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
                 }`}
-                title={isAutoRotate ? 'Auto-Rotate ON' : 'Steady / Freeze (OFF)'}
+                title={isAutoRotate ? 'Auto-Rotate Active (Tap to pause)' : 'Tap to enable Auto-Rotation'}
               >
-                {isAutoRotate ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                <RotateCcw className={`w-3 h-3 ${isAutoRotate ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
+                <span>{isAutoRotate ? '3D Spin' : 'Paused'}</span>
               </button>
             </div>
           </div>
