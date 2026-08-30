@@ -33,14 +33,13 @@ export default function FacilityDirectorView({
   onOpenCrisisModal
 }) {
   const isLight = theme === 'light';
-  const isNetflix = theme === 'netflix';
   const dataStore = hvacData || scheduleData;
   const [precoolAggression, setPrecoolAggression] = useState(1.0);
   const [economizerMaxTemp, setEconomizerMaxTemp] = useState(22.5);
 
   if (!dataStore || !dataStore.summary) {
     return (
-      <div className={`p-8 text-center rounded-3xl border ${isLight ? 'bg-white border-slate-200 text-slate-600' : isNetflix ? 'bg-[#181818] border-red-600/30 text-slate-300' : 'bg-slate-900/60 border-slate-800 text-slate-400'}`}>
+      <div className={`p-8 text-center rounded-3xl border ${isLight ? 'bg-white border-slate-200 text-slate-600' : 'bg-slate-900/60 border-slate-800 text-slate-400'}`}>
         <div className="animate-spin w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full mx-auto mb-3" />
         Loading facility thermal optimization schedule...
       </div>
@@ -149,7 +148,7 @@ export default function FacilityDirectorView({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Cost Savings */}
         <div className={`border rounded-3xl p-5 relative overflow-hidden transition-all shadow-md group ${
-          isLight ? 'bg-white border-slate-200 hover:border-emerald-500 shadow-slate-200/50' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/20 hover:border-red-500/60' : 'bg-slate-900/85 border-slate-800 hover:border-emerald-500/50'
+          isLight ? 'bg-white border-slate-200 hover:border-emerald-500 shadow-slate-200/50' : 'bg-slate-900/85 border-slate-800 hover:border-emerald-500/50'
         }`}>
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Daily Cost Savings</span>
@@ -175,18 +174,18 @@ export default function FacilityDirectorView({
 
         {/* Peak Demand Shaved */}
         <div className={`border rounded-3xl p-5 relative overflow-hidden transition-all shadow-md group ${
-          isLight ? 'bg-white border-slate-200 hover:border-cyan-500 shadow-slate-200/50' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/20 hover:border-red-500/60' : 'bg-slate-900/85 border-slate-800 hover:border-cyan-500/50'
+          isLight ? 'bg-white border-slate-200 hover:border-cyan-500 shadow-slate-200/50' : 'bg-slate-900/85 border-slate-800 hover:border-cyan-500/50'
         }`}>
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Peak Demand Shaved</span>
             <div className={`p-2 rounded-xl border group-hover:scale-110 transition-transform ${
-              isLight ? 'bg-cyan-50 text-cyan-700 border-cyan-200' : isNetflix ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+              isLight ? 'bg-cyan-50 text-cyan-700 border-cyan-200' : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
             }`}>
               <Zap className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className={`text-2xl font-black font-mono tracking-tight ${isLight ? 'text-cyan-700' : isNetflix ? 'text-red-400' : 'text-cyan-300'}`}>
+            <span className={`text-2xl font-black font-mono tracking-tight ${isLight ? 'text-cyan-700' : 'text-cyan-300'}`}>
               {summary.peak_demand_shaved_kw} <span className="text-sm font-normal text-slate-500">kW</span>
             </span>
           </div>
@@ -197,7 +196,7 @@ export default function FacilityDirectorView({
 
         {/* Total Energy Saved */}
         <div className={`border rounded-3xl p-5 relative overflow-hidden transition-all shadow-md group ${
-          isLight ? 'bg-white border-slate-200 hover:border-blue-500 shadow-slate-200/50' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/20 hover:border-red-500/60' : 'bg-slate-900/85 border-slate-800 hover:border-blue-500/50'
+          isLight ? 'bg-white border-slate-200 hover:border-blue-500 shadow-slate-200/50' : 'bg-slate-900/85 border-slate-800 hover:border-blue-500/50'
         }`}>
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Net Energy Shaved</span>
@@ -222,7 +221,7 @@ export default function FacilityDirectorView({
 
         {/* Free-Cooling Economizer Hours */}
         <div className={`border rounded-3xl p-5 relative overflow-hidden transition-all shadow-md group ${
-          isLight ? 'bg-white border-slate-200 hover:border-teal-500 shadow-slate-200/50' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/20 hover:border-red-500/60' : 'bg-slate-900/85 border-slate-800 hover:border-teal-500/50'
+          isLight ? 'bg-white border-slate-200 hover:border-teal-500 shadow-slate-200/50' : 'bg-slate-900/85 border-slate-800 hover:border-teal-500/50'
         }`}>
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Economizer Hours</span>
@@ -244,7 +243,7 @@ export default function FacilityDirectorView({
 
         {/* Carbon Avoided */}
         <div className={`border rounded-3xl p-5 relative overflow-hidden transition-all shadow-md group ${
-          isLight ? 'bg-white border-slate-200 hover:border-emerald-500 shadow-slate-200/50' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/20 hover:border-red-500/60' : 'bg-slate-900/85 border-slate-800 hover:border-emerald-500/50'
+          isLight ? 'bg-white border-slate-200 hover:border-emerald-500 shadow-slate-200/50' : 'bg-slate-900/85 border-slate-800 hover:border-emerald-500/50'
         }`}>
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Carbon Abatement</span>
@@ -267,7 +266,7 @@ export default function FacilityDirectorView({
 
       {/* 2. 24-HOUR HORIZON INTERACTIVE VISUALIZER */}
       <div className={`rounded-3xl p-5 md:p-6 shadow-xl border transition-all ${
-        isLight ? 'bg-white border-slate-200 shadow-slate-200/60' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/30 backdrop-blur-md' : 'bg-slate-900/85 border-slate-800 shadow-2xl backdrop-blur-md'
+        isLight ? 'bg-white border-slate-200 shadow-slate-200/60' : 'bg-slate-900/85 border-slate-800 shadow-2xl backdrop-blur-md'
       }`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>

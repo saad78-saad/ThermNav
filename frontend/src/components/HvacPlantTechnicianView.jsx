@@ -26,7 +26,6 @@ export default function HvacPlantTechnicianView({
   theme = 'light'
 }) {
   const isLight = theme === 'light';
-  const isNetflix = theme === 'netflix';
   const dataStore = hvacData || scheduleData;
   const [overrideMode, setOverrideMode] = useState('AUTO'); // 'AUTO' | 'FORCE_ECONOMIZER' | 'FORCE_PEAK_SHED'
 
