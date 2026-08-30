@@ -27,6 +27,7 @@ export default function HvacPlantTechnicianView({
 }) {
   const isLight = theme === 'light';
   const dataStore = hvacData || scheduleData;
+  const [activeSection, setActiveSection] = useState('working'); // 'working' | 'information'
   const [overrideMode, setOverrideMode] = useState('AUTO'); // 'AUTO' | 'FORCE_ECONOMIZER' | 'FORCE_PEAK_SHED'
 
   const schedule = dataStore?.hourly_schedule || [];
@@ -66,47 +67,84 @@ export default function HvacPlantTechnicianView({
 
   return (
     <div className="space-y-6">
-      {/* 1. PLANT CONTROLS & OVERRIDE HEADER */}
-      <div className={`rounded-3xl p-5 md:p-6 shadow-xl border flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 transition-all ${
-        isLight ? 'bg-white border-slate-200 shadow-slate-200/60' : 'bg-slate-900/85 border-slate-800 shadow-2xl backdrop-blur-md'
-      }`}>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className={`p-2 rounded-xl border ${
-              isLight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
-            }`}>
-              <Activity className="w-4 h-4" />
-            </span>
-            <h3 className={`text-lg font-black tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
-              AHU-01 Automation & Plant Telemetry
-            </h3>
-            <span className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-bold border ${
-              isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-            }`}>
-              Live Modbus/BACnet Stream
-            </span>
+      {/* Primary Working vs Information Categorization Header Button */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl bg-slate-950/80 border border-slate-800 shadow-xl backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <span className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+            <Activity className="w-4 h-4" />
+          </span>
+          <div>
+            <h3 className="text-sm font-black text-white">Central Plant & Mechanical Engineering Suite</h3>
+            <p className="text-xs text-slate-400">Modbus/BACnet Telemetry, Chiller VSD Staging & Psychrometric Enthalpy</p>
           </div>
-          <p className={`text-xs mt-1 ${isLight ? 'text-slate-600 font-medium' : 'text-slate-400'}`}>
-            Real-time damper actuation, psychrometric enthalpy differential, and chiller stage telemetry for <strong>Hour {current.time_label}</strong>.
-          </p>
         </div>
 
-        {/* Override Control Buttons */}
-        <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+        <div className="flex items-center p-1 rounded-2xl bg-slate-900 border border-slate-800 text-xs font-bold">
           <button
-            onClick={() => setOverrideMode('AUTO')}
-            className={`px-4 py-2.5 rounded-2xl border transition-all cursor-pointer ${
-              overrideMode === 'AUTO'
-                ? isLight
-                  ? 'bg-cyan-600 text-white border-cyan-700 shadow-md ring-2 ring-cyan-400'
-                  : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-md ring-1 ring-cyan-400'
-                : isLight
-                  ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+            type="button"
+            onClick={() => setActiveSection('working')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSection === 'working' ? 'bg-cyan-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            🤖 Autonomous FortyGuard LTM
+            <span>🛠️ Live Plant Telemetry</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveSection('information')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSection === 'information' ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>ℹ️ Mechanical Engineering Manual</span>
+          </button>
+        </div>
+      </div>
+
+      {activeSection === 'working' ? (
+        <>
+          {/* 1. PLANT CONTROLS & OVERRIDE HEADER */}
+          <div className={`rounded-3xl p-5 md:p-6 shadow-xl border flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 transition-all ${
+            isLight ? 'bg-white border-slate-200 shadow-slate-200/60' : 'bg-slate-900/85 border-slate-800 shadow-2xl backdrop-blur-md'
+          }`}>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className={`p-2 rounded-xl border ${
+                  isLight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                }`}>
+                  <Activity className="w-4 h-4" />
+                </span>
+                <h3 className={`text-lg font-black tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
+                  AHU-01 Automation & Plant Telemetry
+                </h3>
+                <span className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-bold border ${
+                  isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                }`}>
+                  Live Modbus/BACnet Stream
+                </span>
+              </div>
+              <p className={`text-xs mt-1 ${isLight ? 'text-slate-600 font-medium' : 'text-slate-400'}`}>
+                Real-time damper actuation, psychrometric enthalpy differential, and chiller stage telemetry for <strong>Hour {current.time_label}</strong>.
+              </p>
+            </div>
+
+            {/* Override Control Buttons */}
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+              <button
+                onClick={() => setOverrideMode('AUTO')}
+                className={`px-4 py-2.5 rounded-2xl border transition-all cursor-pointer ${
+                  overrideMode === 'AUTO'
+                    ? isLight
+                      ? 'bg-cyan-600 text-white border-cyan-700 shadow-md ring-2 ring-cyan-400'
+                      : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-md ring-1 ring-cyan-400'
+                    : isLight
+                      ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                      : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                }`}
+              >
+                🤖 Autonomous FortyGuard LTM
+              </button>
           <button
             onClick={() => setOverrideMode('FORCE_ECONOMIZER')}
             className={`px-4 py-2.5 rounded-2xl border transition-all cursor-pointer ${
@@ -378,6 +416,116 @@ export default function HvacPlantTechnicianView({
           </div>
         </div>
       </div>
+    </>
+  ) : (
+    /* ========================================================================= */
+    /* ℹ️ MECHANICAL ENGINEERING & PLANT MAINTENANCE GUIDE (INFORMATION SIDE) */
+    /* ========================================================================= */
+    <div className={`rounded-3xl p-6 shadow-xl border space-y-6 animate-in fade-in duration-200 ${
+      isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800'
+    }`}>
+      <div className="flex items-center gap-3 border-b pb-4 border-slate-800">
+        <span className="p-2.5 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40">
+          <Activity className="w-5 h-5" />
+        </span>
+        <div>
+          <h4 className="text-base font-black text-white">
+            Mechanical Engineering Standards, Psychrometrics & Chiller Lift Optimization
+          </h4>
+          <p className="text-xs text-slate-400 mt-0.5">
+            ASHRAE Guideline 36, Psychrometric enthalpy formulas, and centrifugal VSD compressor diagnostics.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Psychrometric Enthalpy Equation */}
+        <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div className="flex items-center gap-2 text-cyan-400">
+            <Wind className="w-4 h-4" />
+            <h5 className="text-xs font-black uppercase tracking-wider">
+              1. Psychrometric Enthalpy Matrix (ASHRAE Fundamentals)
+            </h5>
+          </div>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Free-cooling economizer gating is governed strictly by moist air specific enthalpy rather than dry-bulb temperature alone:
+          </p>
+          <div className="p-3 rounded-xl bg-slate-900 border border-cyan-500/30 text-cyan-300 font-mono text-xs text-center">
+            h = c_p · T_db + W · (h_fg + c_pw · T_db) = 1.006 · T + W · (2501 + 1.86 · T) [kJ/kg]
+          </div>
+          <div className="space-y-1.5 text-xs text-slate-400">
+            <div>• <strong className="text-slate-200">Enthalpy Threshold:</strong> Outside air is permitted when h_outdoor &le; 45.5 kJ/kg.</div>
+            <div>• <strong className="text-slate-200">Latent Heat Penalty Avoidance:</strong> Prevents humid air ingestion during morning high-dewpoint hours.</div>
+          </div>
+        </div>
+
+        {/* Chiller VSD Surge & Lift */}
+        <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div className="flex items-center gap-2 text-indigo-400">
+            <Zap className="w-4 h-4" />
+            <h5 className="text-xs font-black uppercase tracking-wider">
+              2. Centrifugal Chiller Lift & VSD Speed Modulation
+            </h5>
+          </div>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Compressor Coefficient of Performance (COP) varies dynamically with condenser entering water temperature (EWT):
+          </p>
+          <div className="p-3 rounded-xl bg-slate-900 border border-indigo-500/30 text-indigo-300 font-mono text-xs text-center">
+            COP_chiller = Q_evap / P_electrical = 3.3 · [ 1.0 - (T_wetbulb - 20.0) · 0.015 ]
+          </div>
+          <div className="space-y-1 text-xs text-slate-400">
+            <div>• Every 1°C reduction in cooling tower wet-bulb approach increases chiller COP by <strong>+1.5%</strong>.</div>
+            <div>• Variable speed drive (VSD) eliminates aerodynamic surge while operating at 30% partial loads.</div>
+          </div>
+        </div>
+
+        {/* ASHRAE Guideline 36 Static Pressure Reset */}
+        <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div className="flex items-center gap-2 text-emerald-400">
+            <CheckCircle2 className="w-4 h-4" />
+            <h5 className="text-xs font-black uppercase tracking-wider">
+              3. ASHRAE Guideline 36: Trim & Respond VAV Reset
+            </h5>
+          </div>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Duct static pressure is continuously reset based on the most demanding terminal VAV damper position:
+          </p>
+          <div className="space-y-2 text-xs font-mono">
+            <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+              • <strong>Trim Mode:</strong> If max damper &lt; 85%, trim supply fan static pressure by -0.04 in. w.g. every 2 minutes.
+            </div>
+            <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+              • <strong>Respond Mode:</strong> If 2+ zone dampers reach 100%, boost fan static pressure by +0.06 in. w.g.
+            </div>
+          </div>
+        </div>
+
+        {/* Preventive Maintenance & Bearing Diagnostics */}
+        <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div className="flex items-center gap-2 text-amber-400">
+            <Sliders className="w-4 h-4" />
+            <h5 className="text-xs font-black uppercase tracking-wider">
+              4. Predictive Vibration & Actuator Health Monitoring
+            </h5>
+          </div>
+          <div className="space-y-2 text-xs font-mono">
+            <div className="flex justify-between border-b border-slate-800 pb-1.5">
+              <span className="text-slate-400">AHU-01 Supply Fan Vibration:</span>
+              <strong className="text-emerald-400">0.08 in/s (ISO 10816 Class I Normal)</strong>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-1.5">
+              <span className="text-slate-400">Damper Actuator Hunting Score:</span>
+              <strong className="text-cyan-400">&lt; 2 oscillations / hr (Optimal)</strong>
+            </div>
+            <div className="flex justify-between pt-1">
+              <span className="text-slate-400">Next Scheduled Filter Replacement:</span>
+              <strong className="text-slate-300 font-bold">42 Operating Days Remaining</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
     </div>
   );
 }

@@ -534,7 +534,8 @@ export default function AutodeskBuildingViewer({
   const [cfdData, setCfdData] = useState(null);
   const [isLoadingCfd, setIsLoadingCfd] = useState(false);
 
-  // View Mode: 'DUAL_SPLIT_VIEW' (3D Twin 80% + OpenStreetMap 20% Default) | '3D_AUTODESK_BIM' | 'GOOGLE_MAPS_THERMAL_GIS' | 'FLIR_INFRARED_CFD'
+  // View Mode & Section Categorization: 'working' (Default 3D + Map) | 'information' (Engineering Reference)
+  const [activeSection, setActiveSection] = useState('working');
   const [viewportMode, setViewportMode] = useState('DUAL_SPLIT_VIEW');
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [isSimModalOpen, setIsSimModalOpen] = useState(false);
@@ -1710,44 +1711,54 @@ export default function AutodeskBuildingViewer({
             ))}
           </div>
 
-          {/* View Modes + Season + Sim Speed */}
+          {/* Working vs Information Toggle + Season + Sim Speed */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* View Mode */}
+            {/* Primary Working vs Information Categorization Button */}
             <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
               <button
-                onClick={() => setViewportMode('DUAL_SPLIT_VIEW')}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  viewportMode === 'DUAL_SPLIT_VIEW' ? 'bg-gradient-to-r from-cyan-500 to-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                type="button"
+                onClick={() => setActiveSection('working')}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                  activeSection === 'working' ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
-                title="View 3D Digital Twin & OpenStreetMap GIS Side-by-Side"
+                title="Interactive 3D Twin & OpenStreetMap GIS Operations"
               >
-                ⚡ Dual (Twin + Map)
+                <span>🛠️ Working View</span>
               </button>
               <button
-                onClick={() => setViewportMode('3D_AUTODESK_BIM')}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  viewportMode === '3D_AUTODESK_BIM' ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                type="button"
+                onClick={() => setActiveSection('information')}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                  activeSection === 'information' ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
+                title="Click to Open Deep Engineering Physics & CFD Theory Reference"
               >
-                🏢 3D BIM
-              </button>
-              <button
-                onClick={() => setViewportMode('GOOGLE_MAPS_THERMAL_GIS')}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                🗺️ Map Full
-              </button>
-              <button
-                onClick={() => setViewportMode('FLIR_INFRARED_CFD')}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  viewportMode === 'FLIR_INFRARED_CFD' ? 'bg-purple-600 text-white font-black shadow-sm' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                🔥 FLIR
+                <Info className="w-3 h-3" />
+                <span>ℹ️ Information Guide</span>
               </button>
             </div>
+
+            {/* View Mode */}
+            {activeSection === 'working' && (
+              <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
+                <button
+                  onClick={() => setViewportMode('3D_AUTODESK_BIM')}
+                  className={`px-2 py-1 rounded-lg transition-all cursor-pointer ${
+                    viewportMode === '3D_AUTODESK_BIM' ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🏢 3D BIM
+                </button>
+                <button
+                  onClick={() => setViewportMode('FLIR_INFRARED_CFD')}
+                  className={`px-2 py-1 rounded-lg transition-all cursor-pointer ${
+                    viewportMode === 'FLIR_INFRARED_CFD' ? 'bg-purple-600 text-white font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🔥 FLIR
+                </button>
+              </div>
+            )}
 
             {/* Climate Season */}
             <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px]">
@@ -1803,13 +1814,15 @@ export default function AutodeskBuildingViewer({
       </div>
 
       {/* ========================================================================= */}
-      {/* 🏢 2. ENTERPRISE 3D DIGITAL TWIN & REAL-TIME TELEMETRY WORKSTATION */}
+      {/* 🏢 2. ENTERPRISE 3D DIGITAL TWIN & REAL-TIME TELEMETRY WORKSTATION (WORKING SIDE) */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
-        {/* Left Side: 3D Viewport Canvas Container (8 cols) */}
-        <div className={`xl:col-span-8 rounded-3xl p-5 shadow-xl border relative overflow-hidden flex flex-col justify-between ${
-          isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
-        }`}>
+      {activeSection === 'working' ? (
+        <>
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+            {/* Left Side: 3D Viewport Canvas Container (8 cols) */}
+            <div className={`xl:col-span-8 rounded-3xl p-5 shadow-xl border relative overflow-hidden flex flex-col justify-between ${
+              isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
+            }`}>
           {/* Floor Level Selector Strip for HVAC Team */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-2.5 font-mono text-[11px] z-10">
             <span className="text-slate-400 font-bold text-[10px] uppercase flex items-center gap-1 shrink-0">
@@ -2498,212 +2511,218 @@ export default function AutodeskBuildingViewer({
             ambientTemp={rawAmbient}
             neighbors={currentNeighbors}
             onSelectNeighbor={(n) => setSelectedNeighbor(n)}
-            onLocationChange={(newLoc) => {
-              setActiveLocationQuery(newLoc.name);
-              fetchCfdPhysics(newLoc.name, isEmptyPlot);
-              if (onLocationNotice) onLocationNotice(newLoc.name);
-            }}
-            theme={theme}
           />
         </div>
       </div>
-
-      {/* 4. DEDICATED AUTODESK CFD & MICROCLIMATE PHYSICS SUITE */}
-      <div className={`rounded-3xl p-6 shadow-xl border space-y-5 ${
-        isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800'
-      }`}>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 border-slate-800">
-          <div>
-            <h4 className="text-sm font-black text-white flex items-center gap-2">
-              <Atom className="w-4 h-4 text-cyan-400" />
-              <span>Autodesk CFD / Revit Microclimate Simulation Outputs</span>
-            </h4>
-            <p className="text-xs text-slate-400 mt-0.5">
-              12-Hour dynamic envelope heat fluxes, perimeter zone VAV asymmetry, and thermal plume gate strategies.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold">
-            <button
-              onClick={() => setActivePhysicsTab('physics_summary')}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activePhysicsTab === 'physics_summary' ? 'bg-cyan-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              📊 12h Summary
-            </button>
-            <button
-              onClick={() => setActivePhysicsTab('stefan_boltzmann')}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activePhysicsTab === 'stefan_boltzmann' ? 'bg-rose-600 text-white font-black' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              🔬 Stefan-Boltzmann
-            </button>
-            <button
-              onClick={() => setActivePhysicsTab('specular_glare')}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activePhysicsTab === 'specular_glare' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              ☀️ Specular Glare & Sol-Air
-            </button>
-            <button
-              onClick={() => setActivePhysicsTab('plume_gate')}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activePhysicsTab === 'plume_gate' ? 'bg-purple-600 text-white font-black' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              💨 AHU Plume Shield
-            </button>
-          </div>
-        </div>
-
-        {activePhysicsTab === 'physics_summary' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase">Stefan-Boltzmann Longwave</span>
-                <strong className="text-base font-mono text-rose-400 block">
-                  {cfdData?.total_envelope_heat_gain_breakdown?.longwave_radiation_exchange_kwh || '1,802.8'} kWh
-                </strong>
-                <p className="text-[11px] text-slate-400">Radiant exchange from adjacent hot building facades.</p>
+    </>
+  ) : (
+        /* ========================================================================= */
+        /* ℹ️ 3. DEDICATED AUTODESK CFD & MICROCLIMATE PHYSICS SUITE (INFORMATION SIDE) */
+        /* ========================================================================= */
+        <div className={`rounded-3xl p-6 shadow-xl border space-y-5 animate-in fade-in duration-200 ${
+          isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800'
+        }`}>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 border-slate-800">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40">
+                  <Atom className="w-4 h-4" />
+                </span>
+                <h4 className="text-base font-black text-white">
+                  Autodesk CFD / Revit Microclimate Simulation & Physics Reference
+                </h4>
               </div>
-
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase">Specular Glare Reflections</span>
-                <strong className="text-base font-mono text-amber-400 block">
-                  {cfdData?.total_envelope_heat_gain_breakdown?.specular_glare_reflections_kwh || '739.0'} kWh
-                </strong>
-                <p className="text-[11px] text-slate-400">Shortwave reflections bouncing from neighbor glass curtain walls.</p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase">Envelope Conduction</span>
-                <strong className="text-base font-mono text-cyan-400 block">
-                  {cfdData?.total_envelope_heat_gain_breakdown?.envelope_conduction_kwh || '242.3'} kWh
-                </strong>
-                <p className="text-[11px] text-slate-400">Conduction driven by dynamic perimeter Sol-Air temperatures.</p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase">Pre-Cooling Lead Time</span>
-                <strong className="text-base font-mono text-emerald-400 block">
-                  4.0 Hours Required
-                </strong>
-                <p className="text-[11px] text-slate-400">Charges 2,800 kWh concrete mass before peak radiant surge.</p>
-              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                12-Hour dynamic envelope heat fluxes, perimeter zone VAV asymmetry, Stefan-Boltzmann radiation, and thermal plume gate strategies.
+              </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800">
-              <h5 className="text-xs font-black text-white uppercase tracking-wider mb-3">
-                Current Hour ({timeLabel}) Perimeter Zone Load & VAV CFM Allocation
-              </h5>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {cfdFacades.map((facade) => (
-                  <div key={facade.orientation} className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs font-mono">
+            <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setActivePhysicsTab('physics_summary')}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  activePhysicsTab === 'physics_summary' ? 'bg-cyan-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                📊 12h Summary
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivePhysicsTab('stefan_boltzmann')}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  activePhysicsTab === 'stefan_boltzmann' ? 'bg-rose-600 text-white font-black' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🔬 Stefan-Boltzmann
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivePhysicsTab('specular_glare')}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  activePhysicsTab === 'specular_glare' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                ☀️ Specular Glare & Sol-Air
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivePhysicsTab('plume_gate')}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  activePhysicsTab === 'plume_gate' ? 'bg-purple-600 text-white font-black' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                💨 AHU Plume Shield
+              </button>
+            </div>
+          </div>
+
+          {activePhysicsTab === 'physics_summary' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">Stefan-Boltzmann Longwave</span>
+                  <strong className="text-base font-mono text-rose-400 block">
+                    {cfdData?.total_envelope_heat_gain_breakdown?.longwave_radiation_exchange_kwh || '1,802.8'} kWh
+                  </strong>
+                  <p className="text-[11px] text-slate-400">Radiant exchange from adjacent hot building facades.</p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">Specular Glare Reflections</span>
+                  <strong className="text-base font-mono text-amber-400 block">
+                    {cfdData?.total_envelope_heat_gain_breakdown?.specular_glare_reflections_kwh || '739.0'} kWh
+                  </strong>
+                  <p className="text-[11px] text-slate-400">Shortwave reflections bouncing from neighbor glass curtain walls.</p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">Envelope Conduction</span>
+                  <strong className="text-base font-mono text-cyan-400 block">
+                    {cfdData?.total_envelope_heat_gain_breakdown?.envelope_conduction_kwh || '242.3'} kWh
+                  </strong>
+                  <p className="text-[11px] text-slate-400">Conduction driven by dynamic perimeter Sol-Air temperatures.</p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">Avoided Chiller Energy</span>
+                  <strong className="text-base font-mono text-emerald-400 block">
+                    {cfdData?.total_envelope_heat_gain_breakdown?.avoided_chiller_energy_kwh || '2,784.1'} kWh
+                  </strong>
+                  <p className="text-[11px] text-slate-400">Total cooling energy avoided through proactive sol-air modulation.</p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800">
+                <h5 className="text-xs font-black text-white uppercase tracking-wider mb-3">
+                  Current Hour ({timeLabel}) Perimeter Zone Load & VAV CFM Allocation
+                </h5>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {cfdFacades.map((facade) => (
+                    <div key={facade.orientation} className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs font-mono">
+                      <div className="flex justify-between items-center">
+                        <strong className="text-cyan-300 font-bold">{facade.orientation} Facade</strong>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">F12: {facade.view_factor_F12}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-400">
+                        <span>Sol-Air Temp:</span>
+                        <strong className="text-rose-400">{facade.sol_air_temp_c}°C</strong>
+                      </div>
+                      <div className="flex justify-between text-slate-400">
+                        <span>Net Heat Flux:</span>
+                        <strong className="text-amber-400">{facade.net_facade_heat_flux_wm2} W/m²</strong>
+                      </div>
+                      <div className="flex justify-between text-slate-400 pt-1 border-t border-slate-800">
+                        <span>VAV Airflow:</span>
+                        <strong className="text-emerald-400">{facade.perimeter_vav_cfm.toLocaleString()} CFM ({facade.vav_damper_target_pct}%)</strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activePhysicsTab === 'stefan_boltzmann' && (
+            <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+              <div className="flex items-center gap-2">
+                <Radiation className="w-5 h-5 text-rose-500" />
+                <h5 className="text-xs font-black text-white uppercase tracking-wider">
+                  Stefan-Boltzmann Longwave Thermal Radiation Flux: q_rad = ε * σ * F_12 * (T_neighbor⁴ - T_target⁴)
+                </h5>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {currentNeighbors.map((n) => (
+                  <div key={n.id} className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs font-mono">
                     <div className="flex justify-between items-center">
-                      <strong className="text-cyan-300 font-bold">{facade.orientation} Facade</strong>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">F12: {facade.view_factor_F12}</span>
+                      <strong className="text-white">{n.name}</strong>
+                      <span className="text-rose-400 font-bold">{n.surfaceTempC}°C Surface</span>
                     </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>Sol-Air Temp:</span>
-                      <strong className="text-rose-400">{facade.sol_air_temp_c}°C</strong>
-                    </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>Net Heat Flux:</span>
-                      <strong className="text-amber-400">{facade.net_facade_heat_flux_wm2} W/m²</strong>
-                    </div>
-                    <div className="flex justify-between text-slate-400 pt-1 border-t border-slate-800">
-                      <span>VAV Airflow:</span>
-                      <strong className="text-emerald-400">{facade.perimeter_vav_cfm.toLocaleString()} CFM ({facade.vav_damper_target_pct}%)</strong>
+                    <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+                      <div>Distance: <strong className="text-slate-200">{n.distanceM}m</strong></div>
+                      <div>View Factor F12: <strong className="text-cyan-400">{n.viewFactor}</strong></div>
+                      <div>Emissivity ε: <strong className="text-slate-200">{n.emissivity}</strong></div>
+                      <div>Radiative Flux: <strong className="text-rose-400">+{Math.round(0.88 * 5.67e-8 * n.viewFactor * (Math.pow(n.surfaceTempC + 273.15, 4) - Math.pow(297.15, 4)))} W/m²</strong></div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activePhysicsTab === 'stefan_boltzmann' && (
-          <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
-            <div className="flex items-center gap-2">
-              <Radiation className="w-5 h-5 text-rose-500" />
-              <h5 className="text-xs font-black text-white uppercase tracking-wider">
-                Stefan-Boltzmann Longwave Thermal Radiation Flux: q_rad = ε * σ * F_12 * (T_neighbor⁴ - T_target⁴)
-              </h5>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {currentNeighbors.map((n) => (
-                <div key={n.id} className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs font-mono">
-                  <div className="flex justify-between items-center">
-                    <strong className="text-white">{n.name}</strong>
-                    <span className="text-rose-400 font-bold">{n.surfaceTempC}°C Surface</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-1 border-t border-slate-800">
-                    <div>Distance: <strong className="text-slate-200">{n.distanceM}m</strong></div>
-                    <div>View Factor F12: <strong className="text-cyan-400">{n.viewFactor}</strong></div>
-                    <div>Emissivity ε: <strong className="text-slate-200">{n.emissivity}</strong></div>
-                    <div>Radiative Flux: <strong className="text-rose-400">+{Math.round(0.88 * 5.67e-8 * n.viewFactor * (Math.pow(n.surfaceTempC + 273.15, 4) - Math.pow(297.15, 4)))} W/m²</strong></div>
+          {activePhysicsTab === 'specular_glare' && (
+            <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+              <div className="flex items-center gap-2">
+                <Sun className="w-5 h-5 text-amber-500" />
+                <h5 className="text-xs font-black text-white uppercase tracking-wider">
+                  Specular Glare & Dynamic Sol-Air Temperature: T_sol-air = T_ambient + (α·I_total + q_rad_net)/h_o - (ε·ΔR/h_o)
+                </h5>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                  <strong className="text-amber-400 block font-bold">West Facade Moving Glare Hotspot (14:00 - 17:00)</strong>
+                  <div className="text-slate-400 space-y-1 text-[11px]">
+                    <div>Direct Solar: <strong>680.0 W/m²</strong></div>
+                    <div>Secondary Reflected Glare: <strong className="text-amber-400">+188.5 W/m²</strong></div>
+                    <div>Combined I_total: <strong className="text-rose-400">868.5 W/m²</strong></div>
+                    <div>Calculated Sol-Air Temp: <strong className="text-rose-400">58.4°C</strong></div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {activePhysicsTab === 'specular_glare' && (
-          <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
-            <div className="flex items-center gap-2">
-              <Sun className="w-5 h-5 text-amber-500" />
-              <h5 className="text-xs font-black text-white uppercase tracking-wider">
-                Specular Glare & Dynamic Sol-Air Temperature: T_sol-air = T_ambient + (α·I_total + q_rad_net)/h_o - (ε·ΔR/h_o)
-              </h5>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
-              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-                <strong className="text-amber-400 block font-bold">West Facade Moving Glare Hotspot (14:00 - 17:00)</strong>
-                <div className="text-slate-400 space-y-1 text-[11px]">
-                  <div>Direct Solar: <strong>680.0 W/m²</strong></div>
-                  <div>Secondary Reflected Glare: <strong className="text-amber-400">+188.5 W/m²</strong></div>
-                  <div>Combined I_total: <strong className="text-rose-400">868.5 W/m²</strong></div>
-                  <div>Calculated Sol-Air Temp: <strong className="text-rose-400">58.4°C</strong></div>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-                <strong className="text-cyan-400 block font-bold">South Facade Reflection Profile (11:00 - 15:00)</strong>
-                <div className="text-slate-400 space-y-1 text-[11px]">
-                  <div>Direct Solar: <strong>620.0 W/m²</strong></div>
-                  <div>Secondary Reflected Glare: <strong className="text-amber-400">+94.2 W/m²</strong></div>
-                  <div>Combined I_total: <strong className="text-cyan-300">714.2 W/m²</strong></div>
-                  <div>Calculated Sol-Air Temp: <strong className="text-cyan-300">51.2°C</strong></div>
+                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                  <strong className="text-cyan-400 block font-bold">South Facade Reflection Profile (11:00 - 15:00)</strong>
+                  <div className="text-slate-400 space-y-1 text-[11px]">
+                    <div>Direct Solar: <strong>620.0 W/m²</strong></div>
+                    <div>Secondary Reflected Glare: <strong className="text-amber-400">+94.2 W/m²</strong></div>
+                    <div>Combined I_total: <strong className="text-cyan-300">714.2 W/m²</strong></div>
+                    <div>Calculated Sol-Air Temp: <strong className="text-cyan-300">51.2°C</strong></div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activePhysicsTab === 'plume_gate' && (
-          <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5 text-purple-500" />
-              <h5 className="text-xs font-black text-white uppercase tracking-wider">
-                Urban Canyon Stagnant Pockets & AHU Plume Ingestion Gate
-              </h5>
-            </div>
-            <div className="p-4 rounded-xl bg-purple-950/30 border border-purple-500/40 text-xs font-mono text-slate-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
-                <strong className="text-purple-400 block">PLUME PROTECTION STATUS: ACTIVE</strong>
-                <span className="text-[11px] text-slate-400">West AHU Louvers throttled to 15% minimum ventilation • Avoids +240 kW chiller spike</span>
+          {activePhysicsTab === 'plume_gate' && (
+            <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-purple-500" />
+                <h5 className="text-xs font-black text-white uppercase tracking-wider">
+                  Urban Canyon Stagnant Pockets & AHU Plume Ingestion Gate
+                </h5>
               </div>
-              <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-[11px]">
-                SAVINGS: $148.00 / afternoon
-              </span>
+              <div className="p-4 rounded-xl bg-purple-950/30 border border-purple-500/40 text-xs font-mono text-slate-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <strong className="text-purple-400 block">PLUME PROTECTION STATUS: ACTIVE</strong>
+                  <span className="text-[11px] text-slate-400">West AHU Louvers throttled to 15% minimum ventilation • Avoids +240 kW chiller spike</span>
+                </div>
+                <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-[11px]">
+                  SAVINGS: $148.00 / afternoon
+                </span>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 🗺️ 1. ENLARGED OPENSTREETMAP GIS POP-UP MODAL */}

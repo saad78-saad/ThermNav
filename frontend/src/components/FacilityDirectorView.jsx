@@ -34,6 +34,7 @@ export default function FacilityDirectorView({
 }) {
   const isLight = theme === 'light';
   const dataStore = hvacData || scheduleData;
+  const [activeSection, setActiveSection] = useState('working'); // 'working' | 'information'
   const [precoolAggression, setPrecoolAggression] = useState(1.0);
   const [economizerMaxTemp, setEconomizerMaxTemp] = useState(22.5);
 
@@ -144,12 +145,49 @@ export default function FacilityDirectorView({
         theme={theme}
       />
 
-      {/* 1. TOP STATS ROW */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Cost Savings */}
-        <div className={`border rounded-3xl p-5 relative overflow-hidden transition-all shadow-md group ${
-          isLight ? 'bg-white border-slate-200 hover:border-emerald-500 shadow-slate-200/50' : 'bg-slate-900/85 border-slate-800 hover:border-emerald-500/50'
-        }`}>
+      {/* Primary Working vs Information Categorization Header Button */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl bg-slate-950/80 border border-slate-800 shadow-xl backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <DollarSign className="w-4 h-4" />
+          </span>
+          <div>
+            <h3 className="text-sm font-black text-white">Facility Executive Control Center</h3>
+            <p className="text-xs text-slate-400">ConEd SC-9 Peak Demand Arbitrage & Thermal Mass Storage Operations</p>
+          </div>
+        </div>
+
+        <div className="flex items-center p-1 rounded-2xl bg-slate-900 border border-slate-800 text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => setActiveSection('working')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSection === 'working' ? 'bg-emerald-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <span>🛠️ Working Operations</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSection('information')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSection === 'information' ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Info className="w-3.5 h-3.5" />
+            <span>ℹ️ Information & Tariff Guide</span>
+          </button>
+        </div>
+      </div>
+
+      {activeSection === 'working' ? (
+        <>
+          {/* 1. TOP STATS ROW */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Cost Savings */}
+            <div className={`border rounded-3xl p-5 relative overflow-hidden transition-all shadow-md group ${
+              isLight ? 'bg-white border-slate-200 hover:border-emerald-500 shadow-slate-200/50' : 'bg-slate-900/85 border-slate-800 hover:border-emerald-500/50'
+            }`}>
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Daily Cost Savings</span>
             <div className={`p-2 rounded-xl border group-hover:scale-110 transition-transform ${
@@ -614,6 +652,131 @@ export default function FacilityDirectorView({
           </div>
         </div>
       </div>
+    </>
+  ) : (
+    /* ========================================================================= */
+    /* ℹ️ FACILITY EXECUTIVE INFORMATION & TARIFF GUIDE (INFORMATION SIDE) */
+    /* ========================================================================= */
+    <div className={`rounded-3xl p-6 shadow-xl border space-y-6 animate-in fade-in duration-200 ${
+      isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800'
+    }`}>
+      <div className="flex items-center gap-3 border-b pb-4 border-slate-800">
+        <span className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+          <Info className="w-5 h-5" />
+        </span>
+        <div>
+          <h4 className="text-base font-black text-white">
+            ConEd SC-9 Tariff Arbitrage, 1R1C Thermal Mass Physics & Financial Modeling
+          </h4>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Engineering calculations, rate structure breakdowns, and investment payback metrics.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* ConEd SC-9 Rate Structure */}
+        <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div className="flex items-center gap-2 text-emerald-400">
+            <Zap className="w-4 h-4" />
+            <h5 className="text-xs font-black uppercase tracking-wider">
+              1. ConEd SC-9 Rate Structure & Peak Multipliers
+            </h5>
+          </div>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Consolidated Edison Service Classification No. 9 (SC-9) charges high-tension commercial facilities based on two separate cost components:
+          </p>
+          <div className="space-y-2 text-xs font-mono">
+            <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex justify-between">
+              <span className="text-slate-400">Off-Peak (22:00 - 08:00):</span>
+              <strong className="text-cyan-400">$0.11 / kWh (Low Energy Charge)</strong>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex justify-between">
+              <span className="text-slate-400">On-Peak (11:00 - 18:00):</span>
+              <strong className="text-amber-400">$0.46 / kWh (+318% Multiplier)</strong>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex justify-between">
+              <span className="text-slate-400">Demand Charge (Peak 15-min):</span>
+              <strong className="text-rose-400">$38.50 / kW monthly peak</strong>
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-400">
+            By shifting 240 kW of cooling demand from 14:00 to 05:00, ThermoShift cuts peak demand charges by up to <strong>$9,240 / month</strong>.
+          </p>
+        </div>
+
+        {/* 1R1C Thermal Mass Physics */}
+        <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div className="flex items-center gap-2 text-cyan-400">
+            <ThermometerSnowflake className="w-4 h-4" />
+            <h5 className="text-xs font-black uppercase tracking-wider">
+              2. 1R1C Concrete Lumped Thermal Mass Physics
+            </h5>
+          </div>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            The building's heavy concrete core and structural floor slabs act as an internal <strong>sensible thermal battery</strong> modeled via the 1R1C differential equation:
+          </p>
+          <div className="p-3 rounded-xl bg-slate-900 border border-cyan-500/30 text-cyan-300 font-mono text-xs text-center">
+            C_th · (dT_in / dt) = (T_amb - T_in) / R_envelope - Q_cooling + Q_internal
+          </div>
+          <div className="space-y-1 text-[11px] text-slate-400">
+            <div>• <strong className="text-slate-200">C_th (Thermal Capacitance):</strong> ~8,400 kWh / °C for a 10-floor concrete superstructure.</div>
+            <div>• <strong className="text-slate-200">Pre-Cooling Lead Time:</strong> 4 hours of off-peak sub-cooling stores 2,800 kWh of cooling energy.</div>
+            <div>• <strong className="text-slate-200">Peak Thermal Coasting:</strong> Allows chillers to throttle to 30% load while indoor temp rises by &lt; 0.8°C.</div>
+          </div>
+        </div>
+
+        {/* Capital Investment ROI */}
+        <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div className="flex items-center gap-2 text-amber-400">
+            <DollarSign className="w-4 h-4" />
+            <h5 className="text-xs font-black uppercase tracking-wider">
+              3. Financial ROI & Payback Timeline
+            </h5>
+          </div>
+          <div className="space-y-2 text-xs font-mono">
+            <div className="flex justify-between border-b border-slate-800 pb-1.5">
+              <span className="text-slate-400">Annual Energy Cost Avoided:</span>
+              <strong className="text-emerald-400">$348,200 / year</strong>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-1.5">
+              <span className="text-slate-400">Demand Charge Reductions:</span>
+              <strong className="text-cyan-400">$110,800 / year</strong>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-1.5">
+              <span className="text-slate-400">Software & Sensor Retrofit Cost:</span>
+              <strong className="text-slate-300">$140,000 (One-Time)</strong>
+            </div>
+            <div className="flex justify-between pt-1">
+              <span className="text-slate-400">Payback Horizon:</span>
+              <strong className="text-emerald-300 font-bold">4.8 Months (&lt; 0.5 Year)</strong>
+            </div>
+          </div>
+        </div>
+
+        {/* Emergency Heatwave & Grid Demand Response */}
+        <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div className="flex items-center gap-2 text-rose-400">
+            <ShieldCheck className="w-4 h-4" />
+            <h5 className="text-xs font-black uppercase tracking-wider">
+              4. NYISO Demand Response & Grid Incentives
+            </h5>
+          </div>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            During extreme ConEd emergency grid events, ThermoShift participates in automated <strong>NYISO Special Case Resources (SCR)</strong> programs:
+          </p>
+          <div className="space-y-1.5 text-xs text-slate-400">
+            <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+              ⚡ <strong>Event Dispatch Payment:</strong> $25.00 / kW-month reservation + $500 / MWh curtailment incentive.
+            </div>
+            <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+              🏢 <strong>Zero Occupant Impact:</strong> Pre-chilled thermal mass buffers tenant comfort for up to 3.5 hours during full chiller curtailment.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
     </div>
   );
 }
