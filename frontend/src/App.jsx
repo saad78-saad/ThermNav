@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ThreeThermalBackground from './components/ThreeThermalBackground';
 import HvacPresetSelector from './components/HvacPresetSelector';
 import FacilityDirectorView from './components/FacilityDirectorView';
@@ -36,10 +36,11 @@ import {
   Award,
   AlertTriangle,
   Menu,
-  X
+  X,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import CustomBuildingUploadModal from './components/CustomBuildingUploadModal';
-import ThermalSensorDisclaimerModal from './components/ThermalSensorDisclaimerModal';
 import LocationBlueprintNoticeModal from './components/LocationBlueprintNoticeModal';
 import PageViewInfoModal from './components/PageViewInfoModal';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -64,9 +65,61 @@ export default function App() {
   const [showPageInfoModal, setShowPageInfoModal] = useState(false);
   const [customBuildingPlan, setCustomBuildingPlan] = useState(null);
 
-  // Disclaimer & Location Blueprint Modals
-  const [showDisclaimerModal, setShowDisclaimerModal] = useState(true);
+  // Location Blueprint Notice Modal
   const [locationNotice, setLocationNotice] = useState({ isOpen: false, locationName: '' });
+
+  // 🔊 Audio Voice Notice for Sensor Conventions
+  const [isVoiceSpeaking, setIsVoiceSpeaking] = useState(false);
+
+  const speakSensorNotice = useCallback(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    try {
+      window.speechSynthesis.cancel();
+      const text = "Please note: internal building temperatures are assumed and modeled based on standard engineering conventions. For real-world deployments, live indoor temperatures should be collected directly from physical IoT thermal sensors.";
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      utterance.onstart = () => setIsVoiceSpeaking(true);
+      utterance.onend = () => setIsVoiceSpeaking(false);
+      utterance.onerror = () => setIsVoiceSpeaking(false);
+
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Zira') || v.name.includes('Female')));
+      if (preferredVoice) utterance.voice = preferredVoice;
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("Speech synthesis notice:", e);
+    }
+  }, []);
+
+  // Play automatically on page load + gesture unlock fallback
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      speakSensorNotice();
+    }, 1200);
+
+    const handleFirstGesture = () => {
+      if (!window.speechSynthesis.speaking) {
+        speakSensorNotice();
+      }
+      window.removeEventListener('pointerdown', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+    };
+
+    window.addEventListener('pointerdown', handleFirstGesture, { once: true });
+    window.addEventListener('keydown', handleFirstGesture, { once: true });
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('pointerdown', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [speakSensorNotice]);
 
   // Backend Live Heartbeat State
   const [isBackendConnected, setIsBackendConnected] = useState(false);
@@ -298,8 +351,32 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right Action Bar: Page Guide + Theme Toggle */}
+          {/* Right Action Bar: Voice Notice + Page Guide + Theme Toggle */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* 🔊 Voice Audio Notice / Replay Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isVoiceSpeaking) {
+                  window.speechSynthesis.cancel();
+                  setIsVoiceSpeaking(false);
+                } else {
+                  speakSensorNotice();
+                }
+              }}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer shadow-sm ${
+                isVoiceSpeaking
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 animate-pulse ring-1 ring-amber-400'
+                  : isLight
+                  ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                  : 'bg-slate-900 text-slate-300 border-slate-800 hover:text-white'
+              }`}
+              title="Audio Notice: Internal building temperatures are modeled; real-world uses IoT sensors"
+            >
+              <Volume2 className={`w-4 h-4 ${isVoiceSpeaking ? 'text-amber-400 animate-bounce' : 'text-cyan-400'}`} />
+              <span className="hidden sm:inline">{isVoiceSpeaking ? 'Speaking Notice...' : 'Voice Notice'}</span>
+            </button>
+
             {/* Page Guide Info Button */}
             <button
               onClick={() => setShowPageInfoModal(true)}
@@ -681,14 +758,7 @@ export default function App() {
         onNavigateToBim={() => setActiveRole('bim')}
       />
 
-      {/* 8. 🌡️ STARTUP INDOOR THERMAL SENSOR & PREDICTIVE DISCLAIMER MODAL */}
-      <ThermalSensorDisclaimerModal
-        isOpen={showDisclaimerModal}
-        onClose={() => setShowDisclaimerModal(false)}
-        theme={theme}
-      />
-
-      {/* 9. 🏢 LOCATION BLUEPRINT ARCHITECTURAL NOTICE MODAL */}
+      {/* 8. 🏢 LOCATION BLUEPRINT ARCHITECTURAL NOTICE MODAL */}
       <LocationBlueprintNoticeModal
         isOpen={locationNotice.isOpen}
         locationName={locationNotice.locationName}
