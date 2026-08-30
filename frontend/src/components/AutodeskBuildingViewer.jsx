@@ -1535,6 +1535,7 @@ export default function AutodeskBuildingViewer({
 
   const cfdCurrentHour = cfdData?.hourly_cfd_schedule?.[selectedHour >= 6 && selectedHour <= 18 ? selectedHour - 6 : 8] || cfdData?.hourly_cfd_schedule?.[8] || {};
   const cfdFacades = cfdCurrentHour?.facades || [];
+  const isNetflix = theme === 'netflix';
 
   return (
     <div className="space-y-5">
@@ -1542,7 +1543,11 @@ export default function AutodeskBuildingViewer({
       {/* 🧭 1. TOP HORIZONTAL HVAC MISSION CONTROL BAR */}
       {/* ========================================================================= */}
       <div className={`p-4 rounded-3xl border shadow-xl space-y-3 transition-all ${
-        isLight ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-800 backdrop-blur-md'
+        isLight 
+          ? 'bg-white border-slate-200' 
+          : isNetflix 
+            ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/30 backdrop-blur-md' 
+            : 'bg-slate-900/95 border-slate-800 backdrop-blur-md'
       }`}>
         {/* Row 1: Location Geocoder + Site Status Mode Toggle */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">

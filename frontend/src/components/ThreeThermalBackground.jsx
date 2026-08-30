@@ -11,6 +11,7 @@ export default function ThreeThermalBackground({ theme = 'light' }) {
     container.innerHTML = '';
 
     const isLight = theme === 'light';
+    const isNetflix = theme === 'netflix';
 
     // Scene, Camera, Renderer
     const scene = new THREE.Scene();
@@ -29,8 +30,8 @@ export default function ThreeThermalBackground({ theme = 'light' }) {
     container.appendChild(renderer.domElement);
 
     // 1. Digital City Microclimate Floor Grid
-    const gridCenterColor = isLight ? 0x0284c7 : 0x06b6d4;
-    const gridLineColor = isLight ? 0xe2e8f0 : 0x1e293b;
+    const gridCenterColor = isLight ? 0x0284c7 : isNetflix ? 0xe50914 : 0x06b6d4;
+    const gridLineColor = isLight ? 0xe2e8f0 : isNetflix ? 0x3f0e13 : 0x1e293b;
     const gridHelper = new THREE.GridHelper(120, 40, gridCenterColor, gridLineColor);
     gridHelper.position.y = -8;
     scene.add(gridHelper);
@@ -39,11 +40,11 @@ export default function ThreeThermalBackground({ theme = 'light' }) {
     const towerGroup = new THREE.Group();
 
     const buildingGeometries = [
-      { w: 7, h: 26, d: 7, x: -22, z: -10, color: isLight ? 0x0284c7 : 0x06b6d4 },
-      { w: 9, h: 36, d: 9, x: -8, z: -18, color: isLight ? 0x2563eb : 0x3b82f6 },
-      { w: 8, h: 42, d: 8, x: 12, z: -12, color: isLight ? 0x059669 : 0x10b981 },
-      { w: 6, h: 22, d: 6, x: 26, z: -6, color: isLight ? 0x0284c7 : 0x06b6d4 },
-      { w: 10, h: 18, d: 12, x: 2, z: -25, color: isLight ? 0x4f46e5 : 0x6366f1 }
+      { w: 7, h: 26, d: 7, x: -22, z: -10, color: isLight ? 0x0284c7 : isNetflix ? 0xe50914 : 0x06b6d4 },
+      { w: 9, h: 36, d: 9, x: -8, z: -18, color: isLight ? 0x2563eb : isNetflix ? 0xb91c1c : 0x3b82f6 },
+      { w: 8, h: 42, d: 8, x: 12, z: -12, color: isLight ? 0x059669 : isNetflix ? 0xef4444 : 0x10b981 },
+      { w: 6, h: 22, d: 6, x: 26, z: -6, color: isLight ? 0x0284c7 : isNetflix ? 0xe50914 : 0x06b6d4 },
+      { w: 10, h: 18, d: 12, x: 2, z: -25, color: isLight ? 0x4f46e5 : isNetflix ? 0x991b1b : 0x6366f1 }
     ];
 
     buildingGeometries.forEach((b) => {
