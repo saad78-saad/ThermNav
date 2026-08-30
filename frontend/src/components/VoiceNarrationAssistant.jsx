@@ -16,6 +16,7 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
   const [isMuted, setIsMuted] = useState(false);
   const [activeSpeech, setActiveSpeech] = useState(null); // { title, text, isStartup, timestamp }
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isStartupNoticeActive, setIsStartupNoticeActive] = useState(true);
   const debounceTimerRef = useRef(null);
   const synthRef = useRef(null);
 
@@ -34,10 +35,16 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
       synthRef.current.cancel();
     }
     setIsSpeaking(false);
+    setIsStartupNoticeActive(false); // Unlocks hover voices immediately if dismissed
     setActiveSpeech(null);
   }, []);
 
   const speak = useCallback((title, text, options = {}) => {
+    // If the on-enter startup notice is currently speaking and this is a hover request, don't interrupt
+    if (isStartupNoticeActive && !options.isStartup && !options.force) {
+      return;
+    }
+
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
@@ -67,9 +74,19 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
         utterance.pitch = options.pitch || 1.0;
         utterance.volume = options.volume || 1.0;
 
-        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onstart = () => {
+          setIsSpeaking(true);
+          if (options.isStartup) {
+            setIsStartupNoticeActive(true);
+          }
+        };
+
         utterance.onend = () => {
           setIsSpeaking(false);
+          if (options.isStartup) {
+            setIsStartupNoticeActive(false); // Startup finished -> Unlock hover voices!
+          }
+
           // Auto-hide non-startup hover tooltips after speech completes
           if (!options.isStartup) {
             setTimeout(() => {
@@ -77,7 +94,11 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
             }, 3000);
           }
         };
-        utterance.onerror = () => setIsSpeaking(false);
+
+        utterance.onerror = () => {
+          setIsSpeaking(false);
+          setIsStartupNoticeActive(false);
+        };
 
         // Pick preferred natural voice
         const voices = synthRef.current.getVoices();
@@ -94,18 +115,19 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
       } catch (e) {
         console.warn('Voice speech synthesis error:', e);
         setIsSpeaking(false);
+        setIsStartupNoticeActive(false);
       }
     }, delay);
-  }, [isMuted]);
+  }, [isMuted, isStartupNoticeActive]);
 
-  // Initial On-Enter Voice Notice (Runs automatically on page load)
+  // Initial On-Enter Voice Notice (Runs automatically by default on page load)
   useEffect(() => {
-    const startupText = "Internal building temperatures are assumed and modeled based on standard engineering conventions. For real-world deployments, live indoor temperatures should be collected directly from physical IoT sensors.";
-    const startupTitle = "Engineering Sensor Convention Notice";
+    const startupText = "Welcome to ThermoShift AI. Please note: internal building temperatures shown in this simulation are assumed and modeled based on standard engineering conventions. For real-world deployments, live indoor temperatures should be collected directly from physical IoT thermal sensors. Once this introduction concludes, hover over any building component, simulation control, or map feature for interactive voice explanations.";
+    const startupTitle = "Engineering Sensor Convention & Platform Guide";
 
     const timer = setTimeout(() => {
       speak(startupTitle, startupText, { isStartup: true, immediate: true });
-    }, 900);
+    }, 800);
 
     // Modern browser audio unlock fallback on first user touch/interaction
     const handleFirstGesture = () => {
@@ -130,7 +152,7 @@ export function VoiceAssistantProvider({ children, theme = 'dark' }) {
   }, [speak]);
 
   return (
-    <VoiceContext.Provider value={{ speak, cancelSpeech, isMuted, setIsMuted, isSpeaking, activeSpeech }}>
+    <VoiceContext.Provider value={{ speak, cancelSpeech, isMuted, setIsMuted, isSpeaking, activeSpeech, isStartupNoticeActive }}>
       {children}
 
       {/* ========================================================================= */}

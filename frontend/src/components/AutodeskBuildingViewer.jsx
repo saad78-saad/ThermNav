@@ -1846,61 +1846,81 @@ export default function AutodeskBuildingViewer({
               isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
             }`}>
           {/* Floor Level Selector Strip for HVAC Team */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-2.5 font-mono text-[11px] z-10">
-            <span className="text-slate-400 font-bold text-[10px] uppercase flex items-center gap-1 shrink-0">
-              <Layers className="w-3.5 h-3.5 text-cyan-400" /> Floors:
-            </span>
-            <button
-              type="button"
-              onClick={() => setSelectedFloorIndex(null)}
-              className={`px-2.5 py-1 rounded-lg border font-bold transition-all cursor-pointer shrink-0 ${
-                selectedFloorIndex === null ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
-              }`}
-            >
-              All Floors (Stack)
-            </button>
-            {floorProfiles.map((fl, idx) => (
+          <VoiceHoverCard
+            title="Floor-by-Floor BIM Cutaway & Thermal Zones"
+            voiceText="Isolate individual floor levels to inspect interior core zone temperatures, VAV damper percentages, supply air enthalpy, and perimeter thermal boundaries."
+          >
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-2.5 font-mono text-[11px] z-10">
+              <span className="text-slate-400 font-bold text-[10px] uppercase flex items-center gap-1 shrink-0">
+                <Layers className="w-3.5 h-3.5 text-cyan-400" /> Floors:
+              </span>
               <button
-                key={fl.floorNumber}
                 type="button"
-                onClick={() => setSelectedFloorIndex(selectedFloorIndex === idx ? null : idx)}
-                className={`px-2.5 py-1 rounded-lg border font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
-                  selectedFloorIndex === idx
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400 font-black shadow-md ring-1 ring-cyan-300'
-                    : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                onClick={() => setSelectedFloorIndex(null)}
+                className={`px-2.5 py-1 rounded-lg border font-bold transition-all cursor-pointer shrink-0 ${
+                  selectedFloorIndex === null ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
                 }`}
               >
-                <span>F{fl.floorNumber}</span>
-                <span className="text-[9px] opacity-75">({fl.tenantHvac.shortCode})</span>
+                All Floors (Stack)
               </button>
-            ))}
-          </div>
+              {floorProfiles.map((fl, idx) => (
+                <button
+                  key={fl.floorNumber}
+                  type="button"
+                  onClick={() => setSelectedFloorIndex(selectedFloorIndex === idx ? null : idx)}
+                  className={`px-2.5 py-1 rounded-lg border font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                    selectedFloorIndex === idx
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400 font-black shadow-md ring-1 ring-cyan-300'
+                      : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                  }`}
+                >
+                  <span>F{fl.floorNumber}</span>
+                  <span className="text-[9px] opacity-75">({fl.tenantHvac.shortCode})</span>
+                </button>
+              ))}
+            </div>
+          </VoiceHoverCard>
 
           {/* Top Controls & Camera Angles */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2 z-10">
-            <div className="flex items-center gap-2">
+            <VoiceHoverCard
+              title="Diurnal Simulation Status"
+              voiceText="Current simulation time, ambient dry-bulb temperature, and climate season."
+            >
               <span className="text-[11px] font-mono font-black px-3 py-1 rounded-xl border bg-slate-950 text-cyan-300 border-slate-800">
                 TIME: {timeLabel} • {rawAmbient}°C {isWinter ? '❄️ Winter' : '☀️ Summer'}
               </span>
+            </VoiceHoverCard>
 
+            <div className="flex items-center gap-2">
               {/* Quick Focus Button on Occupants */}
-              <button
-                onClick={() => setCameraAngle('OCCUPANTS_ZOOM')}
-                className="flex items-center gap-1.5 text-[11px] font-black px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md cursor-pointer hover:opacity-90 transition-all"
+              <VoiceHoverCard
+                title="Occupant Thermal Focus"
+                voiceText="Zoom directly into interior zones to observe metabolic heat loads, occupant density, and thermal comfort."
               >
-                <ZoomIn className="w-3.5 h-3.5" />
-                <span>🔍 Zoom to People</span>
-              </button>
+                <button
+                  onClick={() => setCameraAngle('OCCUPANTS_ZOOM')}
+                  className="flex items-center gap-1.5 text-[11px] font-black px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md cursor-pointer hover:opacity-90 transition-all"
+                >
+                  <ZoomIn className="w-3.5 h-3.5" />
+                  <span>🔍 Zoom to People</span>
+                </button>
+              </VoiceHoverCard>
 
-              <button
-                onClick={() => setIsSectionCut(!isSectionCut)}
-                className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-xl border transition-all cursor-pointer ${
-                  isSectionCut ? 'bg-amber-500 text-slate-950 border-amber-600 font-black' : 'bg-slate-800 text-slate-300 border-slate-700'
-                }`}
+              <VoiceHoverCard
+                title="Architectural Section Cutaway"
+                voiceText="Toggles section cut to reveal internal concrete floor slabs, VAV ducts, and central core riser."
               >
-                <Scissors className="w-3 h-3" />
-                <span>{isSectionCut ? '🔪 Cutaway ON' : 'Full Shell'}</span>
-              </button>
+                <button
+                  onClick={() => setIsSectionCut(!isSectionCut)}
+                  className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-xl border transition-all cursor-pointer ${
+                    isSectionCut ? 'bg-amber-500 text-slate-950 border-amber-600 font-black' : 'bg-slate-800 text-slate-300 border-slate-700'
+                  }`}
+                >
+                  <Scissors className="w-3.5 h-3.5" />
+                  <span>{isSectionCut ? 'Section Active' : 'Cutaway'}</span>
+                </button>
+              </VoiceHoverCard>
             </div>
 
             <div className="flex items-center gap-1 text-[10px] font-bold font-mono">
@@ -1932,7 +1952,11 @@ export default function AutodeskBuildingViewer({
               />
 
               {/* 🎛️ SLEEK VERTICAL Y-AXIS 24-HOUR HORIZON TIME SCRUBBER HUD */}
-              <div className="absolute left-3 top-3 bottom-3 z-30 flex flex-col items-center justify-between p-2 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-cyan-500/40 shadow-2xl font-mono text-[10px] select-none w-14">
+              <VoiceHoverCard
+                title="24-Hour Diurnal Microclimate Engine"
+                voiceText="Twenty-four hour predictive microclimate simulator. Integrates outdoor ambient wet-bulb temperatures, direct solar geometry, morning thermal mass pre-cooling from four to eight A M, and afternoon peak load coasting between noon and five P M to eliminate ConEdison high demand rate spikes."
+                className="absolute left-3 top-3 bottom-3 z-30 flex flex-col items-center justify-between p-2 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-cyan-500/40 shadow-2xl font-mono text-[10px] select-none w-14"
+              >
                 {/* Current Hour Badge & Auto-Play Toggle */}
                 <div className="flex flex-col items-center gap-1 pb-1 border-b border-slate-800 w-full">
                   <div className="w-full py-0.5 rounded-md bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black text-[10px] shadow-sm tracking-tight text-center">
@@ -2013,7 +2037,7 @@ export default function AutodeskBuildingViewer({
                 <div className="pt-1 border-t border-slate-800 text-[8px] text-rose-400 font-bold text-center w-full">
                   {rawAmbient}°C
                 </div>
-              </div>
+              </VoiceHoverCard>
 
               {/* 3D Camera Controls + Enlarge Button */}
               <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
@@ -2489,9 +2513,13 @@ export default function AutodeskBuildingViewer({
       {/* ========================================================================= */}
       {/* 🗺️ 3. DEDICATED STANDALONE OPENSTREETMAP GIS MICROCLIMATE SECTION */}
       {/* ========================================================================= */}
-      <div className={`rounded-3xl p-5 shadow-xl border overflow-hidden ${
-        isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
-      }`}>
+      <VoiceHoverCard
+        title="OpenStreetMap 150m Microclimate Radius"
+        voiceText="OpenStreetMap GIS microclimate radar. Analyzes neighboring urban structures within a one hundred fifty meter radius. Computes Stefan-Boltzmann longwave thermal radiation flux, specular glass reflection hotspots, and urban canyon heat traps that elevate localized perimeter temperatures."
+        className={`rounded-3xl p-5 shadow-xl border overflow-hidden ${
+          isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
+        }`}
+      >
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2.5">
             <span className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-sm">
@@ -2535,7 +2563,7 @@ export default function AutodeskBuildingViewer({
             onSelectNeighbor={(n) => setSelectedNeighbor(n)}
           />
         </div>
-      </div>
+      </VoiceHoverCard>
     </>
   ) : (
         /* ========================================================================= */
