@@ -172,8 +172,127 @@ export default function App() {
       {/* 3D City Skyline Background */}
       <ThreeThermalBackground theme={theme} />
 
+      {/* ========================================================================= */}
+      {/* 🌟 1. EXECUTIVE METRICS COMMAND NAVBAR (FULL TOP WIDTH) */}
+      {/* ========================================================================= */}
+      <header className={`sticky top-0 z-40 border-b backdrop-blur-xl transition-all ${
+        isLight ? 'bg-white/95 border-slate-200 shadow-md' : 'bg-slate-950/90 border-slate-800 shadow-2xl'
+      }`}>
+        <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          {/* Brand Logo & Mobile Drawer Toggle */}
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="lg:hidden p-2 rounded-xl bg-slate-900 border border-slate-800 text-cyan-400 hover:text-white transition-all cursor-pointer"
+            >
+              {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+
+            <div className="p-2 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/30">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className={`font-black text-sm tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
+                  ThermoShift <span className="text-cyan-400">EcoBreeze</span>
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] font-mono font-bold">
+                  v2.4 PROD
+                </span>
+                <span className="hidden xl:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  FortyGuard BMS
+                </span>
+              </div>
+              <p className={`text-[10px] hidden sm:block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                Hyperlocal Microclimate Predictive HVAC & 3D Autodesk BIM Twin
+              </p>
+            </div>
+          </div>
+
+          {/* ⚡ CENTER LIVE METRICS PILLS IN NAVBAR */}
+          <div className="hidden md:flex items-center gap-2.5 text-xs font-mono">
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border shadow-sm ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
+            }`}>
+              <Zap className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+              <span className="text-slate-400 text-[10px] uppercase font-bold">Peak Shaved:</span>
+              <strong className="text-cyan-300 font-bold">460 kW (-34%)</strong>
+            </div>
+
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border shadow-sm ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
+            }`}>
+              <Activity className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-slate-400 text-[10px] uppercase font-bold">Daily ROI:</span>
+              <strong className="text-emerald-400 font-bold">$418.50/day</strong>
+            </div>
+
+            <div className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl border shadow-sm ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
+            }`}>
+              <Wind className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-slate-400 text-[10px] uppercase font-bold">Free Air:</span>
+              <strong className="text-amber-300 font-bold">6.5 Hrs</strong>
+            </div>
+
+            <div className={`hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl border shadow-sm ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
+            }`}>
+              <Leaf className="w-3.5 h-3.5 text-teal-400" />
+              <span className="text-slate-400 text-[10px] uppercase font-bold">CO₂ Abated:</span>
+              <strong className="text-teal-300 font-bold">1,840 kg</strong>
+            </div>
+
+            <div className={`hidden 2xl:flex items-center gap-2 px-3 py-1.5 rounded-xl border shadow-sm ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
+            }`}>
+              <Flame className="w-3.5 h-3.5 text-rose-400" />
+              <span className="text-slate-400 text-[10px] uppercase font-bold">FortyGuard UHI:</span>
+              <strong className="text-rose-300 font-bold">+4.8°C Flux</strong>
+            </div>
+          </div>
+
+          {/* Quick Action Triggers */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowPitchModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-md shadow-amber-500/20 transition-all cursor-pointer hover:scale-105"
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">🏆 Pitch Demo</span>
+            </button>
+
+            <button
+              onClick={() => setShowCrisisModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white shadow-md shadow-rose-600/25 transition-all cursor-pointer hover:scale-105"
+            >
+              <Flame className="w-3.5 h-3.5 animate-pulse" />
+              <span className="hidden sm:inline">🔥 Crisis Test</span>
+            </button>
+
+            <button
+              onClick={() => setShowCustomUploadModal(true)}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white shadow-md transition-all cursor-pointer hover:scale-105"
+            >
+              <UploadCloud className="w-3.5 h-3.5" />
+              <span>Upload BIM</span>
+            </button>
+
+            <button
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                isLight ? 'bg-slate-100 border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-700 text-amber-400'
+              }`}
+            >
+              {isLight ? <Moon className="w-4 h-4 text-indigo-600" /> : <Sun className="w-4 h-4 text-amber-400" />}
+            </button>
+          </div>
+        </div>
+      </header>
+
       {/* Main Responsive Layout: Sidebar + Wide Content Canvas */}
-      <div className="flex min-h-screen">
+      <div className="flex min-h-[calc(100vh-4rem)]">
 
         {/* 📱 Mobile Backdrop Overlay */}
         {isSidebarOpen && (
@@ -186,49 +305,22 @@ export default function App() {
         {/* ========================================================================= */}
         {/* 🧭 EXECUTIVE COMMAND SIDEBAR (LEFT FIXED / COLLAPSIBLE DRAWER) */}
         {/* ========================================================================= */}
-        <aside className={`fixed lg:sticky top-0 z-50 h-screen w-72 shrink-0 border-r flex flex-col justify-between p-5 space-y-6 overflow-y-auto transition-transform duration-300 ${
+        <aside className={`fixed lg:sticky top-16 z-40 h-[calc(100vh-4rem)] w-64 xl:w-72 shrink-0 border-r flex flex-col justify-between p-4 space-y-5 overflow-y-auto transition-transform duration-300 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } ${
           isLight ? 'bg-white/95 border-slate-200 shadow-xl' : 'bg-slate-950/95 border-slate-800 backdrop-blur-xl'
         }`}>
           
-          <div className="space-y-6">
-            {/* Brand Logo & Version */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/25">
-                  <Building2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className={`font-black text-sm tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
-                      ThermoShift <span className="text-cyan-400">EcoBreeze</span>
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-mono text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/30">
-                    FortyGuard LTM v2.4
-                  </span>
-                </div>
-              </div>
-
-              {/* Close Button on Mobile */}
-              <button 
-                onClick={() => setIsSidebarOpen(false)}
-                className="lg:hidden p-1.5 rounded-xl hover:bg-slate-800 text-slate-400"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
+          <div className="space-y-5">
             {/* Primary Views Section */}
             <div className="space-y-1.5">
-              <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-3 pb-1">
+              <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2 pb-1">
                 Main System Views
               </div>
 
               <button
                 onClick={() => { setActiveRole('bim'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                   activeRole === 'bim'
                     ? isLight
                       ? 'bg-slate-950 text-white font-black shadow-md'
@@ -238,16 +330,16 @@ export default function App() {
                       : 'text-slate-300 hover:bg-slate-900 hover:text-white'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <Box className="w-4 h-4 text-cyan-400" />
-                  <span>1. 3D Autodesk BIM Twin</span>
+                  <span>1. 3D Autodesk Twin</span>
                 </div>
                 <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/20 text-[9px] font-mono text-cyan-300 font-bold">Hero</span>
               </button>
 
               <button
                 onClick={() => { setActiveRole('director'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                   activeRole === 'director'
                     ? isLight
                       ? 'bg-slate-950 text-white font-black shadow-md'
@@ -257,7 +349,7 @@ export default function App() {
                       : 'text-slate-300 hover:bg-slate-900 hover:text-white'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-amber-400" />
                   <span>2. Energy Director</span>
                 </div>
@@ -265,7 +357,7 @@ export default function App() {
 
               <button
                 onClick={() => { setActiveRole('technician'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                   activeRole === 'technician'
                     ? isLight
                       ? 'bg-slate-950 text-white font-black shadow-md'
@@ -275,7 +367,7 @@ export default function App() {
                       : 'text-slate-300 hover:bg-slate-900 hover:text-white'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <Activity className="w-4 h-4 text-cyan-400" />
                   <span>3. AHU Plant Tech</span>
                 </div>
@@ -283,7 +375,7 @@ export default function App() {
 
               <button
                 onClick={() => { setActiveRole('esg'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                   activeRole === 'esg'
                     ? isLight
                       ? 'bg-slate-950 text-white font-black shadow-md'
@@ -293,7 +385,7 @@ export default function App() {
                       : 'text-slate-300 hover:bg-slate-900 hover:text-white'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <Compass className="w-4 h-4 text-emerald-400" />
                   <span>4. Façade Solar & ESG</span>
                 </div>
@@ -302,87 +394,77 @@ export default function App() {
 
             {/* Quick Interactive Tools & Diagnostics Section */}
             <div className="space-y-1.5 pt-2 border-t border-slate-800">
-              <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-3 pb-1">
+              <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2 pb-1">
                 Executive Tools & Suites
               </div>
 
               <button
                 onClick={() => setShowPitchModal(true)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-all cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-all cursor-pointer"
               >
-                <Trophy className="w-4 h-4" />
+                <Trophy className="w-3.5 h-3.5" />
                 <span>🏆 60-Sec Pitch Demo</span>
               </button>
 
               <button
                 onClick={() => setShowCrisisModal(true)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md shadow-rose-600/25 hover:scale-[1.02] transition-all cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md shadow-rose-600/25 hover:scale-[1.02] transition-all cursor-pointer"
               >
-                <Flame className="w-4 h-4 animate-pulse" />
-                <span>🔥 Heatwave Crisis Stress</span>
+                <Flame className="w-3.5 h-3.5 animate-pulse" />
+                <span>🔥 Crisis Stress Test</span>
               </button>
 
               <button
                 onClick={() => setShowCustomUploadModal(true)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
               >
-                <UploadCloud className="w-4 h-4 text-cyan-400" />
+                <UploadCloud className="w-3.5 h-3.5 text-cyan-400" />
                 <span>📁 Upload Custom BIM</span>
               </button>
 
               <button
                 onClick={() => setShowEsgModal(true)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition-all cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition-all cursor-pointer"
               >
-                <Award className="w-4 h-4 text-emerald-400" />
-                <span>📜 Official ESG Certificate</span>
+                <Award className="w-3.5 h-3.5 text-emerald-400" />
+                <span>📜 Official ESG Cert</span>
               </button>
 
               <button
                 onClick={() => setShowApiSuiteModal(true)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:border-cyan-500 hover:text-cyan-300 transition-all cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:border-cyan-500 hover:text-cyan-300 transition-all cursor-pointer"
               >
-                <Layers className="w-4 h-4 text-cyan-400" />
-                <span>🔬 FortyGuard API Suite (7)</span>
+                <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                <span>🔬 FortyGuard API (7)</span>
               </button>
 
               <button
                 onClick={() => setShowUserManualModal(true)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer"
               >
-                <BookOpen className="w-4 h-4 text-cyan-400" />
+                <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
                 <span>📖 User Manual & Specs</span>
               </button>
 
               <button
                 onClick={() => setShowTourModal(true)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-300 transition-all cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-300 transition-all cursor-pointer"
               >
-                <Sparkles className="w-4 h-4 text-amber-400" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span>💡 30-Sec Quick Tour</span>
               </button>
             </div>
           </div>
 
-          {/* Bottom Utility & Theme Controls */}
-          <div className="pt-4 border-t border-slate-800 space-y-3">
-            <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800">
-              <div className="flex items-center gap-2 text-[11px] font-mono">
+          {/* Bottom BMS Connection Indicator */}
+          <div className="pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div className="flex items-center gap-2 text-[10px] font-mono">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 <span className="text-slate-300">FortyGuard BMS</span>
               </div>
-              <span className="text-[10px] font-mono text-emerald-400 font-bold">ONLINE</span>
+              <span className="text-[9px] font-mono text-emerald-400 font-bold">ONLINE</span>
             </div>
-
-            <button
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                isLight ? 'bg-slate-100 border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-amber-300'
-              }`}
-            >
-              {isLight ? <Moon className="w-4 h-4 text-indigo-600" /> : <Sun className="w-4 h-4 text-amber-400" />}
-              <span>{isLight ? 'Dark Cyber Mode' : 'Light Mode'}</span>
-            </button>
           </div>
         </aside>
 
@@ -390,161 +472,19 @@ export default function App() {
         {/* 💻 MAIN CONTENT WORKSPACE (EXPANDED TO FULL RIGHT WIDTH) */}
         {/* ========================================================================= */}
         <div className="flex-1 min-w-0 flex flex-col">
-          
-          {/* Top Mobile Bar */}
-          <header className={`lg:hidden sticky top-0 z-30 flex items-center justify-between p-4 border-b backdrop-blur-md ${
-            isLight ? 'bg-white/90 border-slate-200' : 'bg-slate-950/80 border-slate-800'
-          }`}>
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 text-cyan-400 font-bold text-xs"
-            >
-              <Menu className="w-5 h-5" />
-              <span>Menu / Tools</span>
-            </button>
-
-            <span className={`font-black text-xs ${isLight ? 'text-slate-950' : 'text-white'}`}>
-              ThermoShift <strong className="text-cyan-400">EcoBreeze</strong>
-            </span>
-
-            <button
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-amber-400"
-            >
-              {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-            </button>
-          </header>
-
-          <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1">
+          <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5 flex-1">
             {/* Dynamic Role Views */}
             <ErrorBoundary theme={theme}>
-          {/* ========================================================================= */}
-          {/* 🌟 1. EXECUTIVE IMPACT COMMAND BAR (ALL CRITICAL HIGHLIGHTS ON FRONT PAGE) */}
-          {/* ========================================================================= */}
-          {/* Primary Main View: 3D Autodesk Digital Twin & Microclimate Simulation Hero (Top Right Corner) */}
-          {activeRole === 'bim' && (
-            <AutodeskBuildingViewer
-              selectedHour={selectedHour}
-              hvacData={hvacData}
-              activePreset={activePreset}
-              customBuildingPlan={customBuildingPlan}
-              theme={theme}
-            />
-          )}
-
-          {/* ========================================================================= */}
-          {/* 🌟 1. EXECUTIVE IMPACT COMMAND BAR (ALL CRITICAL HIGHLIGHTS ON FRONT PAGE) */}
-          {/* ========================================================================= */}
-          {activeRole === 'bim' && (
-            <div className={`rounded-3xl p-5 sm:p-6 border shadow-2xl space-y-4 transition-all relative overflow-hidden ${
-              isLight ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-800 backdrop-blur-md'
-            }`}>
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25 shrink-0">
-                    <Zap className="w-6 h-6 animate-pulse" />
-                  </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className={`text-lg sm:text-xl font-black tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
-                        ThermoShift EcoBreeze Command Center
-                      </h2>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                        FORTYGUARD LTM AI RUNTIME
-                      </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                        LIVE BMS CONNECTED
-                      </span>
-                    </div>
-                    <p className={`text-xs mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                      Hyperlocal Microclimate Predictive Pre-Cooling, Free-Air Economizer & 3D Autodesk Digital Twin
-                    </p>
-                  </div>
-                </div>
-
-                {/* Quick High-Impact Triggers */}
-                <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-                  <button
-                    onClick={() => setShowPitchModal(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black shadow-md shadow-amber-500/20 transition-all cursor-pointer hover:scale-105"
-                  >
-                    <Trophy className="w-4 h-4" />
-                    <span>🏆 Pitch Demo</span>
-                  </button>
-                  <button
-                    onClick={() => setShowCrisisModal(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-black shadow-md shadow-rose-600/25 transition-all cursor-pointer hover:scale-105"
-                  >
-                    <Flame className="w-4 h-4 animate-pulse" />
-                    <span>🔥 Heat Crisis</span>
-                  </button>
-                  <button
-                    onClick={() => setShowEsgModal(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 transition-all cursor-pointer"
-                  >
-                    <Award className="w-4 h-4 text-emerald-400" />
-                    <span>ESG Cert</span>
-                  </button>
-                  <button
-                    onClick={() => setShowCustomUploadModal(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white font-black shadow-md transition-all cursor-pointer hover:scale-105"
-                  >
-                    <UploadCloud className="w-4 h-4" />
-                    <span>Upload BIM</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* 5 Real-Time Key Impact Metrics Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs font-mono">
-                <div className={`p-3.5 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'} space-y-1`}>
-                  <div className="flex items-center justify-between text-[11px] text-cyan-400 font-bold">
-                    <span>PEAK SHAVED</span>
-                    <Zap className="w-3.5 h-3.5 text-cyan-400" />
-                  </div>
-                  <div className="text-lg font-black text-cyan-300">460 kW</div>
-                  <div className="text-[10px] text-slate-400 font-medium">-34.2% Grid Surcharge</div>
-                </div>
-
-                <div className={`p-3.5 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'} space-y-1`}>
-                  <div className="flex items-center justify-between text-[11px] text-emerald-400 font-bold">
-                    <span>DAILY SAVINGS</span>
-                    <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                  </div>
-                  <div className="text-lg font-black text-emerald-400 font-mono">$418.50</div>
-                  <div className="text-[10px] text-slate-400 font-medium">Off-Peak Pre-Cooling ROI</div>
-                </div>
-
-                <div className={`p-3.5 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'} space-y-1`}>
-                  <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
-                    <span>FREE AIR HOURS</span>
-                    <Wind className="w-3.5 h-3.5 text-amber-400" />
-                  </div>
-                  <div className="text-lg font-black text-amber-300">6.5 Hrs/Day</div>
-                  <div className="text-[10px] text-slate-400 font-medium">Compressors 0 kW (Free)</div>
-                </div>
-
-                <div className={`p-3.5 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'} space-y-1`}>
-                  <div className="flex items-center justify-between text-[11px] text-teal-400 font-bold">
-                    <span>CO₂ ABATED</span>
-                    <Leaf className="w-3.5 h-3.5 text-teal-400" />
-                  </div>
-                  <div className="text-lg font-black text-teal-300">1,840 kg</div>
-                  <div className="text-[10px] text-slate-400 font-medium">+14 LEED Credit Pts</div>
-                </div>
-
-                <div className={`col-span-2 sm:col-span-1 p-3.5 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'} space-y-1`}>
-                  <div className="flex items-center justify-between text-[11px] text-rose-400 font-bold">
-                    <span>FORTYGUARD UHI</span>
-                    <Flame className="w-3.5 h-3.5 text-rose-400" />
-                  </div>
-                  <div className="text-lg font-black text-rose-300">+4.8°C Flux</div>
-                  <div className="text-[10px] text-slate-400 font-medium">2m LTM Queued & Active</div>
-                </div>
-              </div>
-            </div>
-          )}
+              {/* Primary Main View: 3D Autodesk Digital Twin & Microclimate Simulation Hero (Top Right Corner) */}
+              {activeRole === 'bim' && (
+                <AutodeskBuildingViewer
+                  selectedHour={selectedHour}
+                  hvacData={hvacData}
+                  activePreset={activePreset}
+                  customBuildingPlan={customBuildingPlan}
+                  theme={theme}
+                />
+              )}
 
           {/* Preset Selector & Global 24-Hour Horizon Controller */}
           <HvacPresetSelector
