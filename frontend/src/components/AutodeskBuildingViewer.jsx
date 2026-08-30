@@ -531,8 +531,8 @@ export default function AutodeskBuildingViewer({
   const [cfdData, setCfdData] = useState(null);
   const [isLoadingCfd, setIsLoadingCfd] = useState(false);
 
-  // View Mode: '3D_AUTODESK_BIM' (Default) | 'GOOGLE_MAPS_THERMAL_GIS' | 'FLIR_INFRARED_CFD'
-  const [viewportMode, setViewportMode] = useState('3D_AUTODESK_BIM');
+  // View Mode: 'GOOGLE_MAPS_THERMAL_GIS' (OpenStreetMap Default) | '3D_AUTODESK_BIM' | 'FLIR_INFRARED_CFD'
+  const [viewportMode, setViewportMode] = useState('GOOGLE_MAPS_THERMAL_GIS');
 
   // Location Search & Greenfield Empty Plot Mode
   const [locationInput, setLocationInput] = useState('');
@@ -1873,49 +1873,15 @@ export default function AutodeskBuildingViewer({
             </div>
           </div>
 
-          {/* WebGL Canvas Mount Container */}
-          <div className="relative">
-            <div
-              ref={mountRef}
-              className={`w-full h-[500px] min-h-[500px] rounded-2xl relative cursor-grab active:cursor-grabbing border overflow-hidden ${
-                isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-950 border-slate-800'
-              }`}
-            />
-
-            {/* Google Maps Style On-Screen Controls */}
-            <div className="absolute top-4 right-4 flex flex-col gap-1.5 z-20">
-              <button
-                onClick={() => zoomCamera(0.85)}
-                className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
-                title="Zoom In"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => zoomCamera(1.15)}
-                className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
-                title="Zoom Out"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setCameraAngle('ISO')}
-                className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-cyan-400 border border-slate-700 shadow-md cursor-pointer transition-all"
-                title="Reset North / Center"
-              >
-                <Navigation className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* ========================================================================= */}
-            {/* 🗺️ INTERACTIVE OPENSTREETMAP GIS VIEWPORT WHEN SELECTED */}
-            {/* ========================================================================= */}
+          {/* Viewport Mount Container (OpenStreetMap GIS Default or 3D WebGL BIM Twin) */}
+          <div className="relative w-full overflow-hidden rounded-2xl">
+            {/* 1. 🗺️ INTERACTIVE OPENSTREETMAP GIS VIEWPORT (DEFAULT) */}
             {viewportMode === 'GOOGLE_MAPS_THERMAL_GIS' ? (
-              <div className="w-full h-[520px] min-h-[520px]">
+              <div className="w-full h-[520px] min-h-[420px] sm:min-h-[520px]">
                 <OpenStreetMicroclimateMap
-                  lat={cfdData?.metadata?.lat || 40.7061}
-                  lng={cfdData?.metadata?.lng || -74.0092}
-                  locationName={activeLocationQuery || cfdData?.metadata?.target_location || 'Manhattan Financial Canyon, New York, NY'}
+                  lat={cfdData?.metadata?.lat || (activePreset === 'nyc_hudson_yards' ? 40.7536 : activePreset === 'nyc_midtown_east' ? 40.7527 : activePreset === 'nyc_brooklyn_navy' ? 40.7018 : 40.7061)}
+                  lng={cfdData?.metadata?.lng || (activePreset === 'nyc_hudson_yards' ? -74.0016 : activePreset === 'nyc_midtown_east' ? -73.9772 : activePreset === 'nyc_brooklyn_navy' ? -73.9723 : -74.0092)}
+                  locationName={activeLocationQuery || cfdData?.metadata?.target_location || (activePreset === 'nyc_hudson_yards' ? '30 Hudson Yards Supertall, NY' : activePreset === 'nyc_midtown_east' ? 'Grand Central Plaza Core, NY' : activePreset === 'nyc_brooklyn_navy' ? 'Brooklyn Navy Yard Tech Hub, NY' : 'Manhattan Financial Canyon, New York, NY')}
                   selectedHour={selectedHour}
                   ambientTemp={rawAmbient}
                   neighbors={currentNeighbors}
@@ -1928,7 +1894,42 @@ export default function AutodeskBuildingViewer({
                   theme={theme}
                 />
               </div>
-            ) : null}
+            ) : (
+              /* 2. 🏢 3D AUTODESK BIM & FLIR VIEWPORT */
+              <div className="relative w-full">
+                <div
+                  ref={mountRef}
+                  className={`w-full h-[520px] min-h-[420px] sm:min-h-[520px] rounded-2xl relative cursor-grab active:cursor-grabbing border overflow-hidden ${
+                    isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-950 border-slate-800'
+                  }`}
+                />
+
+                {/* 3D Camera Zoom & Navigation Controls */}
+                <div className="absolute top-4 right-4 flex flex-col gap-1.5 z-20">
+                  <button
+                    onClick={() => zoomCamera(0.85)}
+                    className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
+                    title="Zoom In"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => zoomCamera(1.15)}
+                    className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-white border border-slate-700 shadow-md cursor-pointer transition-all"
+                    title="Zoom Out"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setCameraAngle('ISO')}
+                    className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-cyan-400 border border-slate-700 shadow-md cursor-pointer transition-all"
+                    title="Reset North / Center"
+                  >
+                    <Navigation className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* ========================================================================= */}
             {/* 🏢 3D FLOATING THERMAL HUD OVERLAY FOR ALL 4 SIDES & NEIGHBORS */}

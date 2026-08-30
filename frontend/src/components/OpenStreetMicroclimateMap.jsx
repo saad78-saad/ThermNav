@@ -50,7 +50,8 @@ export default function OpenStreetMicroclimateMap({
   const markerGroupRef = useRef(null);
   const heatCircleRef = useRef(null);
 
-  const [activeTileKey, setActiveTileKey] = useState('carto_dark');
+  // Default to OpenStreetMap Standard as requested
+  const [activeTileKey, setActiveTileKey] = useState('osm_standard');
   const [searchInput, setSearchInput] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const isLight = theme === 'light';
@@ -70,7 +71,7 @@ export default function OpenStreetMicroclimateMap({
 
   const thermalTheme = getThermalColor(selectedHour, ambientTemp);
 
-  // Initialize Map
+  // Initialize Map & Auto-Center when Coordinates Update
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
@@ -88,8 +89,8 @@ export default function OpenStreetMicroclimateMap({
       // Attribution
       L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map);
 
-      // Add default tile layer
-      const provider = TILE_PROVIDERS[activeTileKey];
+      // Add default tile layer (OpenStreetMap)
+      const provider = TILE_PROVIDERS.osm_standard;
       const tileLayer = L.tileLayer(provider.url, {
         attribution: provider.attribution,
         maxZoom: 20
@@ -102,13 +103,15 @@ export default function OpenStreetMicroclimateMap({
       markerGroupRef.current = markerGroup;
 
       mapInstanceRef.current = map;
-    } else {
-      mapInstanceRef.current.setView([lat, lng], 17);
-    }
 
-    return () => {
-      // Keep map instance alive across hour updates
-    };
+      // Timeout to ensure perfect container sizing
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    } else {
+      mapInstanceRef.current.flyTo([lat, lng], 17, { animate: true, duration: 1.0 });
+      mapInstanceRef.current.invalidateSize();
+    }
   }, [lat, lng]);
 
   // Update Tile Layer when user switches style
