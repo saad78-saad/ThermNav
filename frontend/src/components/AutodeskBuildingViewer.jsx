@@ -1538,71 +1538,8 @@ export default function AutodeskBuildingViewer({
 
   return (
     <div className="space-y-6">
-      {/* 1. TOP HEADER & METADATA BADGES */}
-      <div className={`rounded-3xl p-6 shadow-xl border relative overflow-hidden transition-all ${
-        isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
-      }`}>
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-600/30">
-              <Atom className="w-7 h-7 animate-spin-slow" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className={`text-lg font-black tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
-                  Autodesk 3D BIM Twin & Microclimate Simulation
-                </h3>
-                <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] font-bold">
-                  FORTYGUARD RUNTIME DATA
-                </span>
-              </div>
-              <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                Active Occupants & Workstations visible on every floor • 150m urban massing radiant heat transfer.
-              </p>
-            </div>
-          </div>
-
-          {/* Location & Runtime Badges */}
-          <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
-            {/* 📍 Dynamic Building Location Badge */}
-            <div className={`p-3 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
-              <div className="flex items-center gap-1.5 text-[10px] text-cyan-400 font-bold uppercase">
-                <Compass className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Building Location</span>
-              </div>
-              <strong className="text-white font-bold block text-[11px] mt-0.5">
-                {customBuildingPlan?.city || dataStore?.building?.city || 'Manhattan Canyon, New York, USA'}
-              </strong>
-              <span className="text-[10px] text-slate-400 font-mono">
-                GPS: {customBuildingPlan?.lat || 40.7061}°N, {customBuildingPlan?.lng || -74.0092}°W
-              </span>
-            </div>
-
-            {/* ⏱️ Dynamic Plant Runtime & Schedule Clock */}
-            <div className={`p-3 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
-              <div className="flex items-center gap-1.5 text-[10px] text-amber-400 font-bold uppercase">
-                <Clock className="w-3.5 h-3.5 text-amber-400" />
-                <span>HVAC Plant Runtime</span>
-              </div>
-              <strong className="text-amber-400 font-bold block text-[11px] mt-0.5">
-                {timeLabel} Local • {selectedHour}h Runtime Today
-              </strong>
-              <span className="text-[10px] text-emerald-400 font-mono font-bold">
-                24/7 AI Modulated ({powerKw} kW Active)
-              </span>
-            </div>
-
-            <div className={`p-3 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
-              <span className="text-[10px] text-slate-500 block uppercase">Peak Sol-Air Temp</span>
-              <strong className="text-rose-400 font-bold">58.4°C (West Glazing)</strong>
-              <span className="text-[10px] text-slate-400 block font-mono">150m Massing Radius</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* ========================================================================= */}
-      {/* 🎮 INTEGRATED 3D BIM COCKPIT (INTERNAL CONTROL SIDEBAR + 3D VIEWPORT) */}
+      {/* 🎮 INTEGRATED 3D BIM COCKPIT (INTERNAL CONTROL SIDEBAR + 3D VIEWPORT AT TOP) */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 

@@ -421,6 +421,20 @@ export default function App() {
           {/* ========================================================================= */}
           {/* 🌟 1. EXECUTIVE IMPACT COMMAND BAR (ALL CRITICAL HIGHLIGHTS ON FRONT PAGE) */}
           {/* ========================================================================= */}
+          {/* Primary Main View: 3D Autodesk Digital Twin & Microclimate Simulation Hero (Top Right Corner) */}
+          {activeRole === 'bim' && (
+            <AutodeskBuildingViewer
+              selectedHour={selectedHour}
+              hvacData={hvacData}
+              activePreset={activePreset}
+              customBuildingPlan={customBuildingPlan}
+              theme={theme}
+            />
+          )}
+
+          {/* ========================================================================= */}
+          {/* 🌟 1. EXECUTIVE IMPACT COMMAND BAR (ALL CRITICAL HIGHLIGHTS ON FRONT PAGE) */}
+          {/* ========================================================================= */}
           {activeRole === 'bim' && (
             <div className={`rounded-3xl p-5 sm:p-6 border shadow-2xl space-y-4 transition-all relative overflow-hidden ${
               isLight ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-800 backdrop-blur-md'
@@ -530,17 +544,6 @@ export default function App() {
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Primary Main View: 3D Autodesk Digital Twin & Microclimate Simulation Hero */}
-          {activeRole === 'bim' && (
-            <AutodeskBuildingViewer
-              selectedHour={selectedHour}
-              hvacData={hvacData}
-              activePreset={activePreset}
-              customBuildingPlan={customBuildingPlan}
-              theme={theme}
-            />
           )}
 
           {/* Preset Selector & Global 24-Hour Horizon Controller */}
