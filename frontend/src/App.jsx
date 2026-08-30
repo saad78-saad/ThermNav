@@ -389,6 +389,120 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Dynamic Role Views */}
         <ErrorBoundary theme={theme}>
+          {/* ========================================================================= */}
+          {/* 🌟 1. EXECUTIVE IMPACT COMMAND BAR (ALL CRITICAL HIGHLIGHTS ON FRONT PAGE) */}
+          {/* ========================================================================= */}
+          {activeRole === 'bim' && (
+            <div className={`rounded-3xl p-5 sm:p-6 border shadow-2xl space-y-4 transition-all relative overflow-hidden ${
+              isLight ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-800 backdrop-blur-md'
+            }`}>
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25 shrink-0">
+                    <Zap className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className={`text-lg sm:text-xl font-black tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
+                        ThermoShift EcoBreeze Command Center
+                      </h2>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                        FORTYGUARD LTM AI RUNTIME
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                        LIVE BMS CONNECTED
+                      </span>
+                    </div>
+                    <p className={`text-xs mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Hyperlocal Microclimate Predictive Pre-Cooling, Free-Air Economizer & 3D Autodesk Digital Twin
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quick High-Impact Triggers */}
+                <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+                  <button
+                    onClick={() => setShowPitchModal(true)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black shadow-md shadow-amber-500/20 transition-all cursor-pointer hover:scale-105"
+                  >
+                    <Trophy className="w-4 h-4" />
+                    <span>🏆 Pitch Demo</span>
+                  </button>
+                  <button
+                    onClick={() => setShowCrisisModal(true)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-black shadow-md shadow-rose-600/25 transition-all cursor-pointer hover:scale-105"
+                  >
+                    <Flame className="w-4 h-4 animate-pulse" />
+                    <span>🔥 Heat Crisis</span>
+                  </button>
+                  <button
+                    onClick={() => setShowEsgModal(true)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 transition-all cursor-pointer"
+                  >
+                    <Award className="w-4 h-4 text-emerald-400" />
+                    <span>ESG Cert</span>
+                  </button>
+                  <button
+                    onClick={() => setShowCustomUploadModal(true)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white font-black shadow-md transition-all cursor-pointer hover:scale-105"
+                  >
+                    <UploadCloud className="w-4 h-4" />
+                    <span>Upload BIM</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 5 Real-Time Key Impact Metrics Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs font-mono">
+                <div className={`p-3.5 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'} space-y-1`}>
+                  <div className="flex items-center justify-between text-[11px] text-cyan-400 font-bold">
+                    <span>PEAK SHAVED</span>
+                    <Zap className="w-3.5 h-3.5 text-cyan-400" />
+                  </div>
+                  <div className="text-lg font-black text-cyan-300">460 kW</div>
+                  <div className="text-[10px] text-slate-400 font-medium">-34.2% Grid Surcharge</div>
+                </div>
+
+                <div className={`p-3.5 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'} space-y-1`}>
+                  <div className="flex items-center justify-between text-[11px] text-emerald-400 font-bold">
+                    <span>DAILY SAVINGS</span>
+                    <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                  </div>
+                  <div className="text-lg font-black text-emerald-400 font-mono">$418.50</div>
+                  <div className="text-[10px] text-slate-400 font-medium">Off-Peak Pre-Cooling ROI</div>
+                </div>
+
+                <div className={`p-3.5 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'} space-y-1`}>
+                  <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
+                    <span>FREE AIR HOURS</span>
+                    <Wind className="w-3.5 h-3.5 text-amber-400" />
+                  </div>
+                  <div className="text-lg font-black text-amber-300">6.5 Hrs/Day</div>
+                  <div className="text-[10px] text-slate-400 font-medium">Compressors 0 kW (Free)</div>
+                </div>
+
+                <div className={`p-3.5 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'} space-y-1`}>
+                  <div className="flex items-center justify-between text-[11px] text-teal-400 font-bold">
+                    <span>CO₂ ABATED</span>
+                    <Leaf className="w-3.5 h-3.5 text-teal-400" />
+                  </div>
+                  <div className="text-lg font-black text-teal-300">1,840 kg</div>
+                  <div className="text-[10px] text-slate-400 font-medium">+14 LEED Credit Pts</div>
+                </div>
+
+                <div className={`col-span-2 sm:col-span-1 p-3.5 rounded-2xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'} space-y-1`}>
+                  <div className="flex items-center justify-between text-[11px] text-rose-400 font-bold">
+                    <span>FORTYGUARD UHI</span>
+                    <Flame className="w-3.5 h-3.5 text-rose-400" />
+                  </div>
+                  <div className="text-lg font-black text-rose-300">+4.8°C Flux</div>
+                  <div className="text-[10px] text-slate-400 font-medium">2m LTM Queued & Active</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Primary Main View: 3D Autodesk Digital Twin & Microclimate Simulation Hero */}
           {activeRole === 'bim' && (
             <AutodeskBuildingViewer
