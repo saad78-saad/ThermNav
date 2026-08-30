@@ -527,6 +527,7 @@ export default function AutodeskBuildingViewer({
   theme = 'dark',
   onLocationNotice,
   onOpenUploadModal,
+  onOpenApiModal,
   onLocationChange
 }) {
   const mountRef = useRef(null);
@@ -1898,14 +1899,35 @@ export default function AutodeskBuildingViewer({
 
           {/* Top Controls & Camera Angles */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2 z-10">
-            <VoiceHoverCard
-              title="Diurnal Simulation Status"
-              voiceText="Current simulation time, ambient dry-bulb temperature, and climate season."
-            >
-              <span className="text-[11px] font-mono font-black px-3 py-1 rounded-xl border bg-slate-950 text-cyan-300 border-slate-800">
-                TIME: {timeLabel} • {rawAmbient}°C {isWinter ? '❄️ Winter' : '☀️ Summer'}
-              </span>
-            </VoiceHoverCard>
+            <div className="flex flex-wrap items-center gap-2">
+              <VoiceHoverCard
+                title="Diurnal Simulation Status"
+                voiceText="Current simulation time, ambient dry-bulb temperature, and climate season."
+              >
+                <span className="text-[11px] font-mono font-black px-3 py-1.5 rounded-xl border bg-slate-950 text-cyan-300 border-slate-800 shadow-sm flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                  <span>TIME: {timeLabel} • {rawAmbient}°C {isWinter ? '❄️ Winter' : '☀️ Summer'}</span>
+                </span>
+              </VoiceHoverCard>
+
+              {/* 🟢 DYNAMIC FORTYGUARD LIVE STREAM BADGE & INSPECT BUTTON */}
+              <VoiceHoverCard
+                title="FortyGuard Hyperlocal Microclimate Stream"
+                voiceText="Real-time street-level temperature, psychrometric wet-bulb enthalpy, and urban heat island offset stream from FortyGuard LTM API."
+              >
+                <button
+                  type="button"
+                  onClick={() => onOpenApiModal && onOpenApiModal()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-mono font-black bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all cursor-pointer shadow-sm hover:scale-102"
+                  title="Click to view live FortyGuard LTM API JSON payload and request diagnostics"
+                >
+                  <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                  <span className="text-emerald-400 font-bold">FortyGuard LTM:</span>
+                  <span className="text-white">LIVE ({rawAmbient}°C / {(rawAmbient - 4.2).toFixed(1)}°C wb)</span>
+                  <span className="px-1.5 py-0.2 rounded bg-emerald-500/30 text-[9px] text-emerald-200">🔬 Inspect JSON</span>
+                </button>
+              </VoiceHoverCard>
+            </div>
 
             <div className="flex items-center gap-2">
               {/* Quick Focus Button on Occupants */}

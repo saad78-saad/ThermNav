@@ -495,6 +495,7 @@ function AppInner({ theme, setTheme }) {
                   theme={theme}
                   onLocationNotice={(locName) => setLocationNotice({ isOpen: true, locationName: locName })}
                   onOpenUploadModal={() => setShowCustomUploadModal(true)}
+                  onOpenApiModal={() => setShowApiSuiteModal(true)}
                   onLocationChange={(coords) => {
                     if (coords && coords.lat && coords.lng) {
                       setActiveLocationCoords({
