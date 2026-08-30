@@ -1635,7 +1635,7 @@ export default function AutodeskBuildingViewer({
                 type="text"
                 value={locationInput}
                 onChange={(e) => setLocationInput(e.target.value)}
-                placeholder="Enter Address / Landmark / GPS (e.g. One World Financial, 30 Hudson Yards, Dubai)..."
+                placeholder="Enter Address / Landmark / GPS (e.g. One World Financial, 30 Hudson Yards, Brooklyn Navy Yard)..."
                 className={`w-full pl-10 pr-3 py-2 rounded-2xl text-xs font-mono font-bold border focus:outline-none transition-all ${
                   isLight
                     ? 'bg-slate-50 border-slate-300 text-slate-950 placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-500'
@@ -1690,7 +1690,7 @@ export default function AutodeskBuildingViewer({
               { label: 'One World Financial', query: 'One World Financial Tower, Lower Manhattan, NY' },
               { label: '30 Hudson Yards', query: '30 Hudson Yards, New York, NY' },
               { label: 'Grand Central', query: 'Grand Central Plaza, 42nd St, New York, NY' },
-              { label: 'Dubai Burj District', query: 'Downtown Dubai, UAE' }
+              { label: 'Brooklyn Navy Yard', query: 'Brooklyn Navy Yard Tech Hub, NY' }
             ].map((loc) => (
               <button
                 key={loc.label}
