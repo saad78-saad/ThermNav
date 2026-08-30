@@ -44,12 +44,23 @@ import CustomBuildingUploadModal from './components/CustomBuildingUploadModal';
 import LocationBlueprintNoticeModal from './components/LocationBlueprintNoticeModal';
 import PageViewInfoModal from './components/PageViewInfoModal';
 import ErrorBoundary from './components/ErrorBoundary';
+import { VoiceAssistantProvider, VoiceHoverCard, useVoiceAssistant } from './components/VoiceNarrationAssistant';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://thermshiftai-production.up.railway.app');
 
 export default function App() {
   // Theme: 'dark' (Default high-contrast cyberpunk dark mode) | 'light'
   const [theme, setTheme] = useState('dark');
+
+  return (
+    <VoiceAssistantProvider theme={theme}>
+      <AppInner theme={theme} setTheme={setTheme} />
+    </VoiceAssistantProvider>
+  );
+}
+
+function AppInner({ theme, setTheme }) {
+  const { speak, cancelSpeech, isMuted, setIsMuted, isSpeaking } = useVoiceAssistant();
 
   // Navigation: 'bim' (Autodesk 3D BIM Twin - Default) | 'director' | 'technician' | 'esg'
   const [activeRole, setActiveRole] = useState('bim');
@@ -67,59 +78,6 @@ export default function App() {
 
   // Location Blueprint Notice Modal
   const [locationNotice, setLocationNotice] = useState({ isOpen: false, locationName: '' });
-
-  // 🔊 Audio Voice Notice for Sensor Conventions
-  const [isVoiceSpeaking, setIsVoiceSpeaking] = useState(false);
-
-  const speakSensorNotice = useCallback(() => {
-    if (typeof window === 'undefined' || !window.speechSynthesis) return;
-    try {
-      window.speechSynthesis.cancel();
-      const text = "Please note: internal building temperatures are assumed and modeled based on standard engineering conventions. For real-world deployments, live indoor temperatures should be collected directly from physical IoT thermal sensors.";
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      utterance.onstart = () => setIsVoiceSpeaking(true);
-      utterance.onend = () => setIsVoiceSpeaking(false);
-      utterance.onerror = () => setIsVoiceSpeaking(false);
-
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Zira') || v.name.includes('Female')));
-      if (preferredVoice) utterance.voice = preferredVoice;
-
-      window.speechSynthesis.speak(utterance);
-    } catch (e) {
-      console.warn("Speech synthesis notice:", e);
-    }
-  }, []);
-
-  // Play automatically on page load + gesture unlock fallback
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      speakSensorNotice();
-    }, 1200);
-
-    const handleFirstGesture = () => {
-      if (!window.speechSynthesis.speaking) {
-        speakSensorNotice();
-      }
-      window.removeEventListener('pointerdown', handleFirstGesture);
-      window.removeEventListener('keydown', handleFirstGesture);
-    };
-
-    window.addEventListener('pointerdown', handleFirstGesture, { once: true });
-    window.addEventListener('keydown', handleFirstGesture, { once: true });
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('pointerdown', handleFirstGesture);
-      window.removeEventListener('keydown', handleFirstGesture);
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, [speakSensorNotice]);
 
   // Backend Live Heartbeat State
   const [isBackendConnected, setIsBackendConnected] = useState(false);
@@ -278,243 +236,157 @@ export default function App() {
               {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            <div className="p-3 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/30 shrink-0">
-              <Building2 className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className={`font-black text-base tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
-                  ThermoShift <span className="text-cyan-400">EcoBreeze</span>
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] font-mono font-bold">
-                  v2.4 PROD
-                </span>
-                <button
-                  onClick={() => setShowApiSuiteModal(true)}
-                  className={`hidden xl:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border transition-all cursor-pointer hover:scale-105 ${
-                    isBackendConnected
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                      : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                  }`}
-                  title="Click to view live FortyGuard & FastAPI Network Suite"
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${isBackendConnected ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
-                  <span>{isBackendConnected ? `Railway Live API (${apiLatencyMs || 85}ms)` : 'Client Fallback Engine'}</span>
-                </button>
+            <VoiceHoverCard
+              title="ThermoShift EcoBreeze Platform"
+              voiceText="ThermoShift EcoBreeze: Hyperlocal microclimate predictive H V A C and three D Autodesk digital twin platform."
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <div className="p-3 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/30 shrink-0">
+                <Building2 className="w-6 h-6" />
               </div>
-              <p className={`text-[11px] hidden sm:block font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                Hyperlocal Microclimate Predictive HVAC & 3D Autodesk BIM Twin
-              </p>
-            </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className={`font-black text-base tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
+                    ThermoShift <span className="text-cyan-400">EcoBreeze</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] font-mono font-bold">
+                    v2.4 PROD
+                  </span>
+                </div>
+              </div>
+            </VoiceHoverCard>
           </div>
 
-          {/* ⚡ CENTER LIVE METRICS PILLS IN NAVBAR */}
+          {/* ⚡ CENTER LIVE METRICS PILLS IN NAVBAR (WITH VOICE HOVER TOOLTIPS) */}
           <div className="hidden md:flex items-center gap-2.5 text-xs font-mono">
-            <div className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl border shadow-sm ${
-              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
-            }`}>
-              <Zap className="w-4 h-4 text-cyan-400 animate-pulse" />
-              <span className="text-slate-400 text-[10px] uppercase font-bold">Peak Shaved:</span>
-              <strong className="text-cyan-300 font-bold">460 kW (-34%)</strong>
-            </div>
+            <VoiceHoverCard title="Peak Demand Reduction" voiceText="Four hundred sixty kilowatts of peak power shaved, avoiding ConEdison peak demand surcharges.">
+              <div className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl border shadow-sm transition-all hover:scale-105 cursor-pointer ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800 hover:border-cyan-500/50'}`}>
+                <Zap className="w-4 h-4 text-cyan-400 animate-pulse" />
+                <span className="text-slate-400 text-[10px] uppercase font-bold">Peak Shaved:</span>
+                <strong className="text-cyan-300 font-bold">460 kW (-34%)</strong>
+              </div>
+            </VoiceHoverCard>
 
-            <div className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl border shadow-sm ${
-              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
-            }`}>
-              <Activity className="w-4 h-4 text-emerald-400" />
-              <span className="text-slate-400 text-[10px] uppercase font-bold">Daily ROI:</span>
-              <strong className="text-emerald-400 font-bold">$418.50/day</strong>
-            </div>
-
-            <div className={`hidden lg:flex items-center gap-2 px-3.5 py-2 rounded-2xl border shadow-sm ${
-              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
-            }`}>
-              <Wind className="w-4 h-4 text-amber-400" />
-              <span className="text-slate-400 text-[10px] uppercase font-bold">Free Air:</span>
-              <strong className="text-amber-300 font-bold">6.5 Hrs</strong>
-            </div>
-
-            <div className={`hidden xl:flex items-center gap-2 px-3.5 py-2 rounded-2xl border shadow-sm ${
-              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
-            }`}>
-              <Leaf className="w-4 h-4 text-teal-400" />
-              <span className="text-slate-400 text-[10px] uppercase font-bold">CO₂ Abated:</span>
-              <strong className="text-teal-300 font-bold">1,840 kg</strong>
-            </div>
-
-            <div className={`hidden 2xl:flex items-center gap-2 px-3.5 py-2 rounded-2xl border shadow-sm ${
-              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
-            }`}>
-              <Flame className="w-4 h-4 text-rose-400" />
-              <span className="text-slate-400 text-[10px] uppercase font-bold">FortyGuard UHI:</span>
-              <strong className="text-rose-300 font-bold">+4.8°C Flux</strong>
-            </div>
+            <VoiceHoverCard title="Daily Cost Savings" voiceText="Four hundred eighteen dollars saved today through automated off-peak thermal mass charging.">
+              <div className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl border shadow-sm transition-all hover:scale-105 cursor-pointer ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800 hover:border-emerald-500/50'}`}>
+                <Activity className="w-4 h-4 text-emerald-400" />
+                <span className="text-slate-400 text-[10px] uppercase font-bold">Daily ROI:</span>
+                <strong className="text-emerald-400 font-bold">$418.50/day</strong>
+              </div>
+            </VoiceHoverCard>
           </div>
 
-          {/* Right Action Bar: Voice Notice + Page Guide + Theme Toggle */}
+          {/* Right Action Bar */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* 🔊 Voice Audio Notice / Replay Button */}
-            <button
-              type="button"
-              onClick={() => {
-                if (isVoiceSpeaking) {
-                  window.speechSynthesis.cancel();
-                  setIsVoiceSpeaking(false);
-                } else {
-                  speakSensorNotice();
-                }
-              }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer shadow-sm ${
-                isVoiceSpeaking
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 animate-pulse ring-1 ring-amber-400'
-                  : isLight
-                  ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-                  : 'bg-slate-900 text-slate-300 border-slate-800 hover:text-white'
-              }`}
-              title="Audio Notice: Internal building temperatures are modeled; real-world uses IoT sensors"
-            >
-              <Volume2 className={`w-4 h-4 ${isVoiceSpeaking ? 'text-amber-400 animate-bounce' : 'text-cyan-400'}`} />
-              <span className="hidden sm:inline">{isVoiceSpeaking ? 'Speaking Notice...' : 'Voice Notice'}</span>
-            </button>
-
-            {/* Page Guide Info Button */}
-            <button
-              onClick={() => setShowPageInfoModal(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition-all cursor-pointer hover:scale-105 shadow-sm"
-              title="View operational details and guide for current view"
-            >
-              <Info className="w-4 h-4" />
-              <span className="hidden sm:inline">Page Guide</span>
-            </button>
-
-            {/* Dark Cyber / Light Snow Theme Switcher */}
-            <div className={`flex items-center p-1 rounded-2xl border text-xs font-mono font-bold ${
-              isLight ? 'bg-slate-100 border-slate-300' : 'bg-slate-900 border-slate-800'
-            }`}>
+            <VoiceHoverCard title="Voice Audio Guide" voiceText="Toggles automatic voice note narration on hover or replays the current speech note.">
               <button
-                onClick={() => setTheme('dark')}
-                className={`px-2.5 py-1 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                  theme === 'dark' ? 'bg-cyan-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+                type="button"
+                onClick={() => {
+                  if (isSpeaking) {
+                    cancelSpeech();
+                  } else {
+                    speak("Voice Guide Ready", "Hover your mouse over any metric, control, or building component to hear an audio explanation with live transcript tooltips.", { immediate: true, force: true });
+                  }
+                }}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer shadow-sm ${
+                  isSpeaking
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 animate-pulse ring-1 ring-amber-400'
+                    : isLight
+                    ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                    : 'bg-slate-900 text-slate-300 border-slate-800 hover:text-white'
                 }`}
-                title="Cyber Dark Theme"
               >
-                <Moon className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">Dark</span>
+                <Volume2 className={`w-4 h-4 ${isSpeaking ? 'text-amber-400 animate-bounce' : 'text-cyan-400'}`} />
+                <span className="hidden sm:inline">{isSpeaking ? 'Speaking...' : 'Voice Guide'}</span>
               </button>
+            </VoiceHoverCard>
+
+            <VoiceHoverCard title="Operational Page Guide" voiceText="Opens operational walkthrough, engineering formulas, and executive guide for the active view.">
               <button
-                onClick={() => setTheme('light')}
-                className={`px-2.5 py-1 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                  theme === 'light' ? 'bg-white text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-slate-800'
-                }`}
-                title="Light Mode"
+                onClick={() => setShowPageInfoModal(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition-all cursor-pointer hover:scale-105 shadow-sm"
               >
-                <Sun className="w-3.5 h-3.5 text-amber-500" />
-                <span className="hidden xs:inline">Light</span>
+                <Info className="w-4 h-4" />
+                <span className="hidden sm:inline">Page Guide</span>
               </button>
-            </div>
+            </VoiceHoverCard>
           </div>
         </div>
       </header>
 
-      {/* Main Responsive Layout: Sidebar + Wide Content Canvas */}
+      {/* Main Responsive Layout */}
       <div className="flex min-h-[calc(100vh-4rem)]">
-
-        {/* 📱 Mobile Backdrop Overlay */}
-        {isSidebarOpen && (
-          <div 
-            onClick={() => setIsSidebarOpen(false)} 
-            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 lg:hidden"
-          />
-        )}
-
-        {/* ========================================================================= */}
-        {/* 🧭 EXECUTIVE COMMAND SIDEBAR (LEFT FIXED / COLLAPSIBLE DRAWER) */}
-        {/* ========================================================================= */}
         <aside className={`fixed lg:sticky top-20 z-40 h-[calc(100vh-5rem)] w-64 xl:w-72 shrink-0 border-r flex flex-col justify-between p-4 space-y-5 overflow-y-auto transition-transform duration-300 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } ${
-          isLight ? 'bg-white/95 border-slate-200 shadow-xl' : 'bg-slate-950/95 border-slate-800 backdrop-blur-xl'
-        }`}>
-          
+        } ${isLight ? 'bg-white/95 border-slate-200 shadow-xl' : 'bg-slate-950/95 border-slate-800 backdrop-blur-xl'}`}>
           <div className="space-y-5">
             {/* Primary Views Section */}
             <div className="space-y-1.5">
-              <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2 pb-1">
-                Main System Views
-              </div>
+              <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2 pb-1">Main System Views</div>
 
-              <button
-                onClick={() => { setActiveRole('bim'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                  activeRole === 'bim'
-                    ? isLight
-                      ? 'bg-slate-950 text-white font-black shadow-md'
-                      : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black shadow-lg shadow-cyan-500/25 ring-2 ring-cyan-400/40'
-                    : isLight
-                      ? 'text-slate-700 hover:bg-slate-100'
-                      : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Box className="w-4 h-4 text-cyan-400" />
-                  <span>1. 3D Autodesk Twin</span>
-                </div>
-                <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/20 text-[9px] font-mono text-cyan-300 font-bold">Hero</span>
-              </button>
+              <VoiceHoverCard title="3D Autodesk BIM Twin" voiceText="Interactive three D building digital twin with solar radiation heat flux and floor cutaway slicer.">
+                <button
+                  onClick={() => { setActiveRole('bim'); setIsSidebarOpen(false); }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                    activeRole === 'bim'
+                      ? isLight ? 'bg-slate-950 text-white font-black shadow-md' : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black shadow-lg shadow-cyan-500/25 ring-2 ring-cyan-400/40'
+                      : isLight ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Box className="w-4 h-4" />
+                    <span>3D Autodesk Twin</span>
+                  </div>
+                </button>
+              </VoiceHoverCard>
 
-              <button
-                onClick={() => { setActiveRole('director'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                  activeRole === 'director'
-                    ? isLight
-                      ? 'bg-slate-950 text-white font-black shadow-md'
-                      : 'bg-cyan-500 text-slate-950 font-black shadow-md'
-                    : isLight
-                      ? 'text-slate-700 hover:bg-slate-100'
-                      : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-400" />
-                  <span>2. Energy Director</span>
-                </div>
-              </button>
+              <VoiceHoverCard title="Facility Executive Dashboard" voiceText="Executive financial arbitrage tracking ConEdison peak demand charges and energy savings.">
+                <button
+                  onClick={() => { setActiveRole('director'); setIsSidebarOpen(false); }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                    activeRole === 'director'
+                      ? isLight ? 'bg-slate-950 text-white font-black shadow-md' : 'bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-black shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/40'
+                      : isLight ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Building2 className="w-4 h-4" />
+                    <span>Facility Director</span>
+                  </div>
+                </button>
+              </VoiceHoverCard>
 
-              <button
-                onClick={() => { setActiveRole('technician'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                  activeRole === 'technician'
-                    ? isLight
-                      ? 'bg-slate-950 text-white font-black shadow-md'
-                      : 'bg-cyan-500 text-slate-950 font-black shadow-md'
-                    : isLight
-                      ? 'text-slate-700 hover:bg-slate-100'
-                      : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-cyan-400" />
-                  <span>3. AHU Plant Tech</span>
-                </div>
-              </button>
+              <VoiceHoverCard title="Central Plant Telemetry" voiceText="Mechanical engineering view with chiller C O P curves, psychrometric enthalpy, and damper modulation.">
+                <button
+                  onClick={() => { setActiveRole('technician'); setIsSidebarOpen(false); }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                    activeRole === 'technician'
+                      ? isLight ? 'bg-slate-950 text-white font-black shadow-md' : 'bg-gradient-to-r from-indigo-400 to-purple-500 text-slate-950 font-black shadow-lg shadow-indigo-500/25 ring-2 ring-indigo-400/40'
+                      : isLight ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Activity className="w-4 h-4" />
+                    <span>Plant Technician</span>
+                  </div>
+                </button>
+              </VoiceHoverCard>
 
-              <button
-                onClick={() => { setActiveRole('esg'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                  activeRole === 'esg'
-                    ? isLight
-                      ? 'bg-slate-950 text-white font-black shadow-md'
-                      : 'bg-cyan-500 text-slate-950 font-black shadow-md'
-                    : isLight
-                      ? 'text-slate-700 hover:bg-slate-100'
-                      : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Compass className="w-4 h-4 text-emerald-400" />
-                  <span>4. Façade Solar & ESG</span>
-                </div>
-              </button>
+              <VoiceHoverCard title="Zone Comfort and ESG" voiceText="A S H R A E Standard fifty-five thermal comfort and Local Law ninety-seven decarbonization compliance tracker.">
+                <button
+                  onClick={() => { setActiveRole('esg'); setIsSidebarOpen(false); }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                    activeRole === 'esg'
+                      ? isLight ? 'bg-slate-950 text-white font-black shadow-md' : 'bg-gradient-to-r from-teal-400 to-cyan-500 text-slate-950 font-black shadow-lg shadow-teal-500/25 ring-2 ring-teal-400/40'
+                      : isLight ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Compass className="w-4 h-4" />
+                    <span>Zone Comfort & ESG</span>
+                  </div>
+                </button>
+              </VoiceHoverCard>
             </div>
 
             {/* Quick Interactive Tools & Diagnostics Section */}
@@ -523,61 +395,96 @@ export default function App() {
                 Executive Tools & Suites
               </div>
 
-              <button
-                onClick={() => setShowPitchModal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-all cursor-pointer"
+              <VoiceHoverCard
+                title="60-Second Pitch Demo"
+                voiceText="Opens the sixty-second executive hackathon pitch walkthrough."
               >
-                <Trophy className="w-3.5 h-3.5" />
-                <span>🏆 60-Sec Pitch Demo</span>
-              </button>
+                <button
+                  onClick={() => setShowPitchModal(true)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-all cursor-pointer"
+                >
+                  <Trophy className="w-3.5 h-3.5" />
+                  <span>🏆 60-Sec Pitch Demo</span>
+                </button>
+              </VoiceHoverCard>
 
-              <button
-                onClick={() => setShowCrisisModal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md shadow-rose-600/25 hover:scale-[1.02] transition-all cursor-pointer"
+              <VoiceHoverCard
+                title="Crisis Stress Test"
+                voiceText="Simulate an extreme urban heatwave and emergency peak demand load shedding."
               >
-                <Flame className="w-3.5 h-3.5 animate-pulse" />
-                <span>🔥 Crisis Stress Test</span>
-              </button>
+                <button
+                  onClick={() => setShowCrisisModal(true)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md shadow-rose-600/25 hover:scale-[1.02] transition-all cursor-pointer"
+                >
+                  <Flame className="w-3.5 h-3.5 animate-pulse" />
+                  <span>🔥 Crisis Stress Test</span>
+                </button>
+              </VoiceHoverCard>
 
-              <button
-                onClick={() => setShowCustomUploadModal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
+              <VoiceHoverCard
+                title="Upload Custom BIM"
+                voiceText="Upload custom Revit IFC BIM building models or DXF blueprint floor plans."
               >
-                <UploadCloud className="w-3.5 h-3.5 text-cyan-400" />
-                <span>📁 Upload Custom BIM</span>
-              </button>
+                <button
+                  onClick={() => setShowCustomUploadModal(true)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
+                >
+                  <UploadCloud className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>📁 Upload Custom BIM</span>
+                </button>
+              </VoiceHoverCard>
 
-              <button
-                onClick={() => setShowEsgModal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition-all cursor-pointer"
+              <VoiceHoverCard
+                title="Official ESG Certificate"
+                voiceText="Generate official ESG decarbonization certification per Local Law ninety-seven."
               >
-                <Award className="w-3.5 h-3.5 text-emerald-400" />
-                <span>📜 Official ESG Cert</span>
-              </button>
+                <button
+                  onClick={() => setShowEsgModal(true)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition-all cursor-pointer"
+                >
+                  <Award className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>📜 Official ESG Cert</span>
+                </button>
+              </VoiceHoverCard>
 
-              <button
-                onClick={() => setShowApiSuiteModal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:border-cyan-500 hover:text-cyan-300 transition-all cursor-pointer"
+              <VoiceHoverCard
+                title="FortyGuard API Explorer"
+                voiceText="Explore all seven FortyGuard REST API endpoints with live request payloads."
               >
-                <Layers className="w-3.5 h-3.5 text-cyan-400" />
-                <span>🔬 FortyGuard API (7)</span>
-              </button>
+                <button
+                  onClick={() => setShowApiSuiteModal(true)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:border-cyan-500 hover:text-cyan-300 transition-all cursor-pointer"
+                >
+                  <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>🔬 FortyGuard API (7)</span>
+                </button>
+              </VoiceHoverCard>
 
-              <button
-                onClick={() => setShowUserManualModal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer"
+              <VoiceHoverCard
+                title="System User Manual"
+                voiceText="Read full engineering specifications, thermal equations, and operational manual."
               >
-                <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-                <span>📖 User Manual & Specs</span>
-              </button>
+                <button
+                  onClick={() => setShowUserManualModal(true)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>📖 User Manual & Specs</span>
+                </button>
+              </VoiceHoverCard>
 
-              <button
-                onClick={() => setShowTourModal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-300 transition-all cursor-pointer"
+              <VoiceHoverCard
+                title="30-Second Quick Tour"
+                voiceText="Interactive guided walkthrough of the digital twin and H V A C controls."
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>💡 30-Sec Quick Tour</span>
-              </button>
+                <button
+                  onClick={() => setShowTourModal(true)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-300 transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>💡 30-Sec Quick Tour</span>
+                </button>
+              </VoiceHoverCard>
             </div>
           </div>
 

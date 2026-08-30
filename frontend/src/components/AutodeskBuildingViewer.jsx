@@ -72,6 +72,7 @@ import {
   SlidersHorizontal,
   Settings2
 } from 'lucide-react';
+import { VoiceHoverCard, useVoiceAssistant } from './VoiceNarrationAssistant';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://thermshiftai-production.up.railway.app');
 
@@ -1617,126 +1618,147 @@ export default function AutodeskBuildingViewer({
       }`}>
         {/* Row 1: Location Geocoder + Site Status Mode Toggle */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (locationInput.trim()) {
-                const query = locationInput.trim();
-                setActiveLocationQuery(query);
-                fetchCfdPhysics(query, isEmptyPlot);
-                if (onLocationNotice) onLocationNotice(query);
-              }
-            }}
-            className="flex-1 flex items-center gap-2"
+          <VoiceHoverCard
+            title="Microclimate CFD Location Simulator"
+            voiceText="Search any global address or landmark to run real-time microclimate and solar boundary calculations."
+            className="flex-1"
           >
-            <div className="relative flex-1">
-              <MapPin className="w-4 h-4 text-cyan-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={locationInput}
-                onChange={(e) => setLocationInput(e.target.value)}
-                placeholder="Enter Address / Landmark / GPS (e.g. One World Financial, 30 Hudson Yards, Brooklyn Navy Yard)..."
-                className={`w-full pl-10 pr-3 py-2 rounded-2xl text-xs font-mono font-bold border focus:outline-none transition-all ${
-                  isLight
-                    ? 'bg-slate-50 border-slate-300 text-slate-950 placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-500'
-                    : 'bg-slate-950 border-slate-700 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-400'
-                }`}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isLoadingCfd}
-              className="px-4 py-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-black text-xs shadow-md cursor-pointer disabled:opacity-50 transition-all shrink-0"
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (locationInput.trim()) {
+                  const query = locationInput.trim();
+                  setActiveLocationQuery(query);
+                  fetchCfdPhysics(query, isEmptyPlot);
+                  if (onLocationNotice) onLocationNotice(query);
+                }
+              }}
+              className="flex items-center gap-2"
             >
-              {isLoadingCfd ? 'Simulating...' : '📍 Simulate Site'}
-            </button>
-          </form>
+              <div className="relative flex-1">
+                <MapPin className="w-4 h-4 text-cyan-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  placeholder="Enter Address / Landmark / GPS (e.g. One World Financial, 30 Hudson Yards, Brooklyn Navy Yard)..."
+                  className={`w-full pl-10 pr-3 py-2 rounded-2xl text-xs font-mono font-bold border focus:outline-none transition-all ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-300 text-slate-950 placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-500'
+                      : 'bg-slate-950 border-slate-700 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-400'
+                  }`}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isLoadingCfd}
+                className="px-4 py-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-black text-xs shadow-md cursor-pointer disabled:opacity-50 transition-all shrink-0"
+              >
+                {isLoadingCfd ? 'Simulating...' : '📍 Simulate Site'}
+              </button>
+            </form>
+          </VoiceHoverCard>
 
           {/* Target BIM vs Greenfield Plot Toggle */}
-          <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-mono shrink-0">
-            <button
-              type="button"
-              onClick={() => {
-                setIsEmptyPlot(false);
-                fetchCfdPhysics(activeLocationQuery, false);
-              }}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-                !isEmptyPlot ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              🏢 Target BIM Facility
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsEmptyPlot(true);
-                fetchCfdPhysics(activeLocationQuery, true);
-              }}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-                isEmptyPlot ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              🏗️ Greenfield Plot
-            </button>
-          </div>
+          <VoiceHoverCard
+            title="Facility vs Greenfield Mode"
+            voiceText="Toggle between existing high-rise BIM building and vacant greenfield development site."
+          >
+            <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-mono shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEmptyPlot(false);
+                  fetchCfdPhysics(activeLocationQuery, false);
+                }}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                  !isEmptyPlot ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🏢 Target BIM Facility
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEmptyPlot(true);
+                  fetchCfdPhysics(activeLocationQuery, true);
+                }}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                  isEmptyPlot ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🏗️ Greenfield Plot
+              </button>
+            </div>
+          </VoiceHoverCard>
         </div>
 
         {/* Row 2: Presets, View Mode, Season, Speed & Floor Level Selectors */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-800/80 text-xs font-mono">
           {/* Quick Location Pills */}
-          <div className="flex flex-wrap items-center gap-1">
-            <span className="text-[10px] text-slate-400 uppercase font-bold pr-1">Presets:</span>
-            {[
-              { label: 'One World Financial', query: 'One World Financial Tower, Lower Manhattan, NY' },
-              { label: '30 Hudson Yards', query: '30 Hudson Yards, New York, NY' },
-              { label: 'Grand Central', query: 'Grand Central Plaza, 42nd St, New York, NY' },
-              { label: 'Brooklyn Navy Yard', query: 'Brooklyn Navy Yard Tech Hub, NY' }
-            ].map((loc) => (
-              <button
-                key={loc.label}
-                type="button"
-                onClick={() => {
-                  setLocationInput(loc.query);
-                  setActiveLocationQuery(loc.query);
-                  fetchCfdPhysics(loc.query, isEmptyPlot);
-                }}
-                className={`text-[10px] px-2.5 py-1 rounded-xl border transition-all cursor-pointer ${
-                  activeLocationQuery === loc.query
-                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-sm'
-                    : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
-                }`}
-              >
-                {loc.label}
-              </button>
-            ))}
-          </div>
+          <VoiceHoverCard
+            title="New York Landmark Presets"
+            voiceText="Quickly load Manhattan Financial Canyon, Hudson Yards, Grand Central, or Brooklyn Navy Yard."
+          >
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="text-[10px] text-slate-400 uppercase font-bold pr-1">Presets:</span>
+              {[
+                { label: 'One World Financial', query: 'One World Financial Tower, Lower Manhattan, NY' },
+                { label: '30 Hudson Yards', query: '30 Hudson Yards, New York, NY' },
+                { label: 'Grand Central', query: 'Grand Central Plaza, 42nd St, New York, NY' },
+                { label: 'Brooklyn Navy Yard', query: 'Brooklyn Navy Yard Tech Hub, NY' }
+              ].map((loc) => (
+                <button
+                  key={loc.label}
+                  type="button"
+                  onClick={() => {
+                    setLocationInput(loc.query);
+                    setActiveLocationQuery(loc.query);
+                    fetchCfdPhysics(loc.query, isEmptyPlot);
+                  }}
+                  className={`text-[10px] px-2.5 py-1 rounded-xl border transition-all cursor-pointer ${
+                    activeLocationQuery === loc.query
+                      ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-sm'
+                      : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                  }`}
+                >
+                  {loc.label}
+                </button>
+              ))}
+            </div>
+          </VoiceHoverCard>
 
           {/* Working vs Information Toggle + Season + Sim Speed */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Primary Working vs Information Categorization Button */}
-            <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
-              <button
-                type="button"
-                onClick={() => setActiveSection('working')}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-                  activeSection === 'working' ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
-                }`}
-                title="Interactive 3D Twin & OpenStreetMap GIS Operations"
-              >
-                <span>🛠️ Working View</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveSection('information')}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-                  activeSection === 'information' ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
-                }`}
-                title="Click to Open Deep Engineering Physics & CFD Theory Reference"
-              >
-                <Info className="w-3 h-3" />
-                <span>ℹ️ Information Guide</span>
-              </button>
-            </div>
+            <VoiceHoverCard
+              title="Working View vs Information Guide"
+              voiceText="Toggle between live interactive operations and the deep physics engineering guide."
+            >
+              <div className="flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setActiveSection('working')}
+                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                    activeSection === 'working' ? 'bg-cyan-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                  }`}
+                  title="Interactive 3D Twin & OpenStreetMap GIS Operations"
+                >
+                  <span>🛠️ Working View</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSection('information')}
+                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                    activeSection === 'information' ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                  }`}
+                  title="Click to Open Deep Engineering Physics & CFD Theory Reference"
+                >
+                  <Info className="w-3 h-3" />
+                  <span>ℹ️ Information Guide</span>
+                </button>
+              </div>
+            </VoiceHoverCard>
 
             {/* View Mode */}
             {activeSection === 'working' && (
