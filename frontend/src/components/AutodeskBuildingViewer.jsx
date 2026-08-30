@@ -711,7 +711,7 @@ export default function AutodeskBuildingViewer({
 
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.background = new THREE.Color(viewportMode === 'FLIR_INFRARED_CFD' ? 0x050515 : isLight ? 0xf8fafc : 0x070d19);
+    scene.background = new THREE.Color(viewportMode === 'FLIR_INFRARED_CFD' ? 0x050515 : isLight ? 0xf8fafc : isNetflix ? 0x141414 : 0x070d19);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     cameraRef.current = camera;
@@ -1731,18 +1731,28 @@ export default function AutodeskBuildingViewer({
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
         {/* Left Side: 3D Viewport Canvas Container (8 cols) */}
         <div className={`xl:col-span-8 rounded-3xl p-5 shadow-xl border relative overflow-hidden flex flex-col justify-between ${
-          isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
+          isLight 
+            ? 'bg-white border-slate-200' 
+            : isNetflix 
+              ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/40' 
+              : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
         }`}>
           {/* Floor Level Selector Strip for HVAC Team */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-2.5 font-mono text-[11px] z-10">
             <span className="text-slate-400 font-bold text-[10px] uppercase flex items-center gap-1 shrink-0">
-              <Layers className="w-3.5 h-3.5 text-cyan-400" /> Floors:
+              <Layers className={`w-3.5 h-3.5 ${isNetflix ? 'text-red-400' : 'text-cyan-400'}`} /> Floors:
             </span>
             <button
               type="button"
               onClick={() => setSelectedFloorIndex(null)}
               className={`px-2.5 py-1 rounded-lg border font-bold transition-all cursor-pointer shrink-0 ${
-                selectedFloorIndex === null ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                selectedFloorIndex === null 
+                  ? isNetflix 
+                    ? 'bg-[#E50914] text-white border-red-500 font-black shadow-md shadow-red-600/30' 
+                    : 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md' 
+                  : isNetflix 
+                    ? 'bg-[#111] text-slate-400 border-red-600/20 hover:text-white' 
+                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
               }`}
             >
               All Floors (Stack)
@@ -1754,8 +1764,12 @@ export default function AutodeskBuildingViewer({
                 onClick={() => setSelectedFloorIndex(selectedFloorIndex === idx ? null : idx)}
                 className={`px-2.5 py-1 rounded-lg border font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
                   selectedFloorIndex === idx
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400 font-black shadow-md ring-1 ring-cyan-300'
-                    : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                    ? isNetflix
+                      ? 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-red-400 font-black shadow-md ring-1 ring-red-300'
+                      : 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400 font-black shadow-md ring-1 ring-cyan-300'
+                    : isNetflix
+                      ? 'bg-[#111] text-slate-300 border-red-600/20 hover:border-red-600/40 hover:text-white'
+                      : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
                 }`}
               >
                 <span>F{fl.floorNumber}</span>
@@ -1767,14 +1781,18 @@ export default function AutodeskBuildingViewer({
           {/* Top Controls & Camera Angles */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2 z-10">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono font-black px-3 py-1 rounded-xl border bg-slate-950 text-cyan-300 border-slate-800">
+              <span className={`text-[11px] font-mono font-black px-3 py-1 rounded-xl border ${
+                isNetflix ? 'bg-[#111] text-red-300 border-red-600/30' : 'bg-slate-950 text-cyan-300 border-slate-800'
+              }`}>
                 TIME: {timeLabel} • {rawAmbient}°C {isWinter ? '❄️ Winter' : '☀️ Summer'}
               </span>
 
               {/* Quick Focus Button on Occupants */}
               <button
                 onClick={() => setCameraAngle('OCCUPANTS_ZOOM')}
-                className="flex items-center gap-1.5 text-[11px] font-black px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md cursor-pointer hover:opacity-90 transition-all"
+                className={`flex items-center gap-1.5 text-[11px] font-black px-3 py-1 rounded-xl text-white shadow-md cursor-pointer hover:opacity-90 transition-all ${
+                  isNetflix ? 'bg-gradient-to-r from-red-600 to-rose-700 shadow-red-600/30' : 'bg-gradient-to-r from-cyan-500 to-blue-600'
+                }`}
               >
                 <ZoomIn className="w-3.5 h-3.5" />
                 <span>🔍 Zoom to People</span>
@@ -1783,7 +1801,7 @@ export default function AutodeskBuildingViewer({
               <button
                 onClick={() => setIsSectionCut(!isSectionCut)}
                 className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-xl border transition-all cursor-pointer ${
-                  isSectionCut ? 'bg-amber-500 text-slate-950 border-amber-600 font-black' : 'bg-slate-800 text-slate-300 border-slate-700'
+                  isSectionCut ? 'bg-amber-500 text-slate-950 border-amber-600 font-black' : isNetflix ? 'bg-[#222] text-slate-300 border-red-600/30' : 'bg-slate-800 text-slate-300 border-slate-700'
                 }`}
               >
                 <Scissors className="w-3 h-3" />
@@ -1802,7 +1820,9 @@ export default function AutodeskBuildingViewer({
                 <button
                   key={ang.id}
                   onClick={() => setCameraAngle(ang.id)}
-                  className="px-2 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer"
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                    isNetflix ? 'bg-[#1e1e1e] border-red-600/30 text-slate-200 hover:text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
+                  }`}
                 >
                   {ang.label}
                 </button>
@@ -1815,7 +1835,7 @@ export default function AutodeskBuildingViewer({
             <div
               ref={mountRef}
               className={`w-full h-[500px] min-h-[500px] rounded-2xl relative cursor-grab active:cursor-grabbing border overflow-hidden ${
-                isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-950 border-slate-800'
+                isLight ? 'bg-slate-100 border-slate-200' : isNetflix ? 'bg-[#121212] border-red-600/30' : 'bg-slate-950 border-slate-800'
               }`}
             />
 
@@ -2127,7 +2147,9 @@ export default function AutodeskBuildingViewer({
 
         {/* Right Side: Meters & Live Neighbor Heat Inspector (4 cols) */}
         <div className="xl:col-span-4 space-y-4 flex flex-col justify-between">
-          <div className="grid grid-cols-3 gap-3 p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl">
+          <div className={`grid grid-cols-3 gap-3 p-5 rounded-3xl border shadow-xl ${
+            isLight ? 'bg-white border-slate-200' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/30' : 'bg-slate-900/90 border-slate-800'
+          }`}>
             <div className="flex flex-col items-center text-center">
               <span className="text-[10px] font-bold text-rose-400 uppercase">Ambient Air</span>
               <div className="relative w-8 h-36 bg-slate-800 rounded-full my-2 p-1 flex flex-col justify-end overflow-hidden border border-slate-700 shadow-inner">
@@ -2138,11 +2160,13 @@ export default function AutodeskBuildingViewer({
             </div>
 
             <div className="flex flex-col items-center text-center">
-              <span className="text-[10px] font-bold text-cyan-400 uppercase">Center Target</span>
+              <span className={`text-[10px] font-bold uppercase ${isNetflix ? 'text-red-400' : 'text-cyan-400'}`}>Center Target</span>
               <div className="relative w-8 h-36 bg-slate-800 rounded-full my-2 p-1 flex flex-col justify-end overflow-hidden border border-slate-700 shadow-inner">
-                <div className="w-full rounded-full bg-gradient-to-t from-blue-600 via-cyan-500 to-teal-400 transition-all duration-500 shadow-lg" style={{ height: `${indoorPct}%` }} />
+                <div className={`w-full rounded-full transition-all duration-500 shadow-lg ${
+                  isNetflix ? 'bg-gradient-to-t from-red-700 via-rose-500 to-red-400' : 'bg-gradient-to-t from-blue-600 via-cyan-500 to-teal-400'
+                }`} style={{ height: `${indoorPct}%` }} />
               </div>
-              <strong className="text-sm font-mono text-cyan-400">{indoorTemp}°C</strong>
+              <strong className={`text-sm font-mono ${isNetflix ? 'text-red-300' : 'text-cyan-400'}`}>{indoorTemp}°C</strong>
               <span className="text-[9px] text-emerald-400 font-mono">ASHRAE 55 OK</span>
             </div>
 
@@ -2160,7 +2184,9 @@ export default function AutodeskBuildingViewer({
           {(() => {
             const dynSelected = calculateDynamicNeighborThermal(selectedNeighbor, selectedHour, rawAmbient, cfdData);
             return (
-              <div className="p-5 rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl space-y-3">
+              <div className={`p-5 rounded-3xl border shadow-2xl space-y-3 ${
+                isLight ? 'bg-white border-slate-200' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-red-950/30' : 'bg-slate-950 border-slate-800'
+              }`}>
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <div className="flex items-center gap-2">
                     <Building className="w-4 h-4 text-rose-400" />
@@ -2180,14 +2206,16 @@ export default function AutodeskBuildingViewer({
                   </span>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 font-mono text-[11px] space-y-2 text-slate-200">
+                <div className={`p-3 rounded-2xl border font-mono text-[11px] space-y-2 ${
+                  isNetflix ? 'bg-[#121212] border-red-600/20 text-slate-200' : 'bg-slate-900 border-slate-800 text-slate-200'
+                }`}>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Distance to Target:</span>
                     <strong className="text-white">{selectedNeighbor.distanceM} meters</strong>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">View Factor F12:</span>
-                    <strong className="text-cyan-400">{selectedNeighbor.viewFactor}</strong>
+                    <strong className={isNetflix ? 'text-red-400' : 'text-cyan-400'}>{selectedNeighbor.viewFactor}</strong>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Dynamic Surface Temp:</span>
@@ -2209,7 +2237,13 @@ export default function AutodeskBuildingViewer({
                         type="button"
                         onClick={() => setSelectedNeighbor(n)}
                         className={`p-2 rounded-xl border text-[10px] font-bold font-mono transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
-                          selectedNeighbor.id === n.id ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md' : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white'
+                          selectedNeighbor.id === n.id 
+                            ? isNetflix
+                              ? 'bg-[#E50914] text-white border-red-400 font-black shadow-md shadow-red-600/30'
+                              : 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md' 
+                            : isNetflix
+                              ? 'bg-[#121212] text-slate-300 border-red-600/20 hover:border-red-600/40 hover:text-white'
+                              : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white'
                         }`}
                       >
                         <span className="font-bold">{n.orientation}</span>
@@ -2226,7 +2260,7 @@ export default function AutodeskBuildingViewer({
 
       {/* 4. DEDICATED AUTODESK CFD & MICROCLIMATE PHYSICS SUITE */}
       <div className={`rounded-3xl p-6 shadow-xl border space-y-5 ${
-        isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800'
+        isLight ? 'bg-white border-slate-200' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/30' : 'bg-slate-900/90 border-slate-800'
       }`}>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 border-slate-800">
           <div>

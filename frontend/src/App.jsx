@@ -44,8 +44,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export default function App() {
-  // Theme: 'dark' (Default high-contrast cyberpunk dark mode) | 'light'
-  const [theme, setTheme] = useState('dark');
+  // Theme: 'netflix' (Default cinematic Netflix dark crimson mode) | 'dark' | 'light'
+  const [theme, setTheme] = useState('netflix');
 
   // Navigation: 'bim' (Autodesk 3D BIM Twin - Default) | 'director' | 'technician' | 'esg'
   const [activeRole, setActiveRole] = useState('bim');

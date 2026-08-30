@@ -24,6 +24,7 @@ export default function ZoneComfortEsgView({
   onOpenEsgModal
 }) {
   const isLight = theme === 'light';
+  const isNetflix = theme === 'netflix';
   const dataStore = hvacData || scheduleData;
   const [selectedOrientation, setSelectedOrientation] = useState('West Façade');
 

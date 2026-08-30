@@ -81,6 +81,7 @@ export default function HvacPresetSelector({
   theme = 'dark'
 }) {
   const isLight = theme === 'light';
+  const isNetflix = theme === 'netflix';
   const [showQuickGuide, setShowQuickGuide] = useState(false);
 
   const currentHourData = hvacData?.hourly_schedule?.[selectedHour] || {};
@@ -93,39 +94,51 @@ export default function HvacPresetSelector({
     <div className="space-y-4">
       {/* 💡 User-Friendly Quick-Start Guide Bar (Collapsible) */}
       <div className={`rounded-2xl border transition-all ${
-        isLight ? 'bg-cyan-50/80 border-cyan-200 text-slate-800' : 'bg-cyan-950/30 border-cyan-500/30 text-cyan-200'
+        isLight 
+          ? 'bg-cyan-50/80 border-cyan-200 text-slate-800' 
+          : isNetflix 
+            ? 'bg-[#1a1a1a] border-red-600/30 text-red-200 shadow-lg' 
+            : 'bg-cyan-950/30 border-cyan-500/30 text-cyan-200'
       }`}>
         <button
           onClick={() => setShowQuickGuide(!showQuickGuide)}
           className="w-full p-3.5 flex items-center justify-between font-bold text-xs cursor-pointer hover:opacity-90 transition-opacity"
         >
           <div className="flex items-center gap-2">
-            <HelpCircle className="w-4 h-4 text-cyan-400" />
+            <HelpCircle className={`w-4 h-4 ${isNetflix ? 'text-red-400' : 'text-cyan-400'}`} />
             <span>💡 New to ThermoShift? Click here for the 3-step Quick Start Guide</span>
           </div>
-          <div className="flex items-center gap-1 text-[11px] text-cyan-400">
+          <div className={`flex items-center gap-1 text-[11px] ${isNetflix ? 'text-red-400' : 'text-cyan-400'}`}>
             <span>{showQuickGuide ? 'Hide Guide' : 'Show Guide'}</span>
             {showQuickGuide ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </div>
         </button>
 
         {showQuickGuide && (
-          <div className="p-4 pt-0 border-t border-cyan-500/20 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-              <strong className="text-cyan-400 block font-bold">1. Select or Upload Facility</strong>
+          <div className={`p-4 pt-0 border-t grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs ${
+            isNetflix ? 'border-red-600/20' : 'border-cyan-500/20'
+          }`}>
+            <div className={`p-3 rounded-xl border space-y-1 ${
+              isNetflix ? 'bg-[#121212] border-red-600/30' : 'bg-slate-950/60 border-slate-800'
+            }`}>
+              <strong className={isNetflix ? 'text-red-400 block font-bold' : 'text-cyan-400 block font-bold'}>1. Select or Upload Facility</strong>
               <p className="text-slate-400 text-[11px]">
                 Choose a world city preset below or click <strong>Upload Blueprint</strong> to drop your own CAD/BIM floor plan.
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+            <div className={`p-3 rounded-xl border space-y-1 ${
+              isNetflix ? 'bg-[#121212] border-red-600/30' : 'bg-slate-950/60 border-slate-800'
+            }`}>
               <strong className="text-amber-400 block font-bold">2. Scrub the 24-Hour Horizon</strong>
               <p className="text-slate-400 text-[11px]">
                 Drag the time slider below or press <strong>▶ Auto-Play</strong> to watch FortyGuard pre-cool slabs and shed peak power.
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+            <div className={`p-3 rounded-xl border space-y-1 ${
+              isNetflix ? 'bg-[#121212] border-red-600/30' : 'bg-slate-950/60 border-slate-800'
+            }`}>
               <strong className="text-emerald-400 block font-bold">3. Inspect 3D BIM & Stress Tests</strong>
               <p className="text-slate-400 text-[11px]">
                 Switch to <strong>3D Autodesk BIM</strong> to slice open ducts, toggle meetings, or run the <strong>Heat Crisis</strong> test.
@@ -137,11 +150,19 @@ export default function HvacPresetSelector({
 
       {/* 🎛️ 24-HOUR HORIZON TIMELINE & SIMULATION CONTROLLER */}
       <div className={`rounded-3xl p-5 md:p-6 shadow-xl border transition-all ${
-        isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
+        isLight 
+          ? 'bg-white border-slate-200' 
+          : isNetflix 
+            ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/30 backdrop-blur-md' 
+            : 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
       }`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-600/30">
+            <div className={`p-2.5 rounded-2xl text-white shadow-md ${
+              isNetflix 
+                ? 'bg-gradient-to-tr from-red-600 to-rose-700 shadow-red-600/30' 
+                : 'bg-gradient-to-tr from-cyan-600 to-blue-600 shadow-cyan-600/30'
+            }`}>
               <Clock className="w-5 h-5" />
             </div>
             <div>
@@ -149,12 +170,16 @@ export default function HvacPresetSelector({
                 <h3 className={`text-base font-black tracking-tight ${isLight ? 'text-slate-950' : 'text-white'}`}>
                   24-Hour Microclimate Simulation Horizon
                 </h3>
-                <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] font-bold">
+                <span className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold ${
+                  isNetflix 
+                    ? 'bg-red-500/15 border border-red-500/40 text-red-400' 
+                    : 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
+                }`}>
                   {timeLabel}
                 </span>
               </div>
               <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                Outdoor Temp: <strong className="text-rose-400 font-mono">{ambientTemp}°C</strong> • Mode: <strong className="text-cyan-400 font-bold">{currentMode}</strong> • Tariff: <strong className="text-amber-400 font-mono">${currentTariff}/kWh</strong>
+                Outdoor Temp: <strong className="text-rose-400 font-mono">{ambientTemp}°C</strong> • Mode: <strong className={isNetflix ? 'text-red-400 font-bold' : 'text-cyan-400 font-bold'}>{currentMode}</strong> • Tariff: <strong className="text-amber-400 font-mono">${currentTariff}/kWh</strong>
               </p>
             </div>
           </div>
@@ -165,8 +190,12 @@ export default function HvacPresetSelector({
               onClick={() => onSelectHour && onSelectHour(5)}
               className={`px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
                 selectedHour === 5
-                  ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md'
-                  : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                  ? isNetflix 
+                    ? 'bg-[#E50914] text-white border-red-500 font-black shadow-md shadow-red-600/30' 
+                    : 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-md'
+                  : isNetflix 
+                    ? 'bg-[#1e1e1e] text-slate-300 border-red-600/20 hover:border-red-600/40 hover:text-white' 
+                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
               }`}
             >
               ❄️ 05:00 Pre-Cool
@@ -219,13 +248,15 @@ export default function HvacPresetSelector({
             step="1"
             value={selectedHour}
             onChange={(e) => onSelectHour && onSelectHour(parseInt(e.target.value))}
-            className="w-full h-3 rounded-lg accent-cyan-400 bg-slate-800 cursor-pointer"
+            className={`w-full h-3 rounded-lg cursor-pointer ${
+              isNetflix ? 'accent-red-500 bg-[#222]' : 'accent-cyan-400 bg-slate-800'
+            }`}
           />
 
           {/* Time Marker Labels */}
           <div className="flex justify-between text-[10px] font-mono text-slate-400 px-1">
             <span>00:00 (Night Off-Peak)</span>
-            <span className="text-cyan-400 font-bold">06:00 (Pre-Cool)</span>
+            <span className={isNetflix ? 'text-red-400 font-bold' : 'text-cyan-400 font-bold'}>06:00 (Pre-Cool)</span>
             <span className="text-amber-400 font-bold">12:00 (On-Peak Shaving)</span>
             <span className="text-orange-400 font-bold">18:00 (Peak End)</span>
             <span>23:00 (Night)</span>
@@ -235,12 +266,12 @@ export default function HvacPresetSelector({
 
       {/* 🏢 FACILITY PRESETS & CUSTOM BLUEPRINT INDICATOR */}
       <div className={`rounded-3xl p-5 md:p-6 shadow-xl border transition-all ${
-        isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800'
+        isLight ? 'bg-white border-slate-200' : isNetflix ? 'bg-[#181818]/95 border-red-600/30 shadow-2xl shadow-red-950/30' : 'bg-slate-900/90 border-slate-800'
       }`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <h4 className="text-sm font-black text-white flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-cyan-400" />
+              <Building2 className={`w-4 h-4 ${isNetflix ? 'text-red-400' : 'text-cyan-400'}`} />
               <span>Select Facility Location / Microclimate Profile</span>
             </h4>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -251,7 +282,11 @@ export default function HvacPresetSelector({
           {onOpenCustomModal && (
             <button
               onClick={onOpenCustomModal}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-xs shadow-md shadow-cyan-600/30 transition-all cursor-pointer hover:scale-105"
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-2xl text-white font-black text-xs shadow-md transition-all cursor-pointer hover:scale-105 ${
+                isNetflix 
+                  ? 'bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 shadow-red-600/30' 
+                  : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 shadow-cyan-600/30'
+              }`}
             >
               <UploadCloud className="w-4 h-4" />
               <span>Upload Custom Blueprint</span>
@@ -261,9 +296,11 @@ export default function HvacPresetSelector({
 
         {/* Active Custom Building Indicator Banner if Loaded */}
         {customBuildingPlan && (
-          <div className="mb-4 p-4 rounded-2xl border border-cyan-500/40 bg-cyan-950/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+          <div className={`mb-4 p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md ${
+            isNetflix ? 'border-red-500/40 bg-red-950/30' : 'border-cyan-500/40 bg-cyan-950/40'
+          }`}>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-2xl bg-cyan-600 text-white shadow-md">
+              <div className={`p-2.5 rounded-2xl text-white shadow-md ${isNetflix ? 'bg-red-600' : 'bg-cyan-600'}`}>
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
@@ -271,7 +308,9 @@ export default function HvacPresetSelector({
                   <h4 className="text-xs font-black text-white">
                     CUSTOM ACTIVE PLAN: {customBuildingPlan.name}
                   </h4>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-cyan-500 text-slate-950">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                    isNetflix ? 'bg-red-500 text-white' : 'bg-cyan-500 text-slate-950'
+                  }`}>
                     {customBuildingPlan.num_floors} Storeys • {customBuildingPlan.floor_area_m2?.toLocaleString()} m²
                   </span>
                 </div>
@@ -283,7 +322,9 @@ export default function HvacPresetSelector({
 
             <button
               onClick={onOpenCustomModal}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold border border-cyan-500/40 bg-slate-900 text-cyan-300 hover:bg-slate-800 transition-all cursor-pointer"
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                isNetflix ? 'border-red-500/40 bg-[#1e1e1e] text-red-300 hover:bg-[#282828]' : 'border-cyan-500/40 bg-slate-900 text-cyan-300 hover:bg-slate-800'
+              }`}
             >
               Edit Blueprint Specs
             </button>
@@ -301,8 +342,12 @@ export default function HvacPresetSelector({
                 onClick={() => onSelectPreset(preset.id)}
                 className={`text-left relative p-4 rounded-2xl border transition-all duration-200 group overflow-hidden cursor-pointer ${
                   isSelected
-                    ? 'bg-slate-800 border-cyan-500 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-400'
-                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                    ? isNetflix
+                      ? 'bg-[#222] border-red-500 shadow-lg shadow-red-500/20 ring-1 ring-red-400'
+                      : 'bg-slate-800 border-cyan-500 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-400'
+                    : isNetflix
+                      ? 'bg-[#121212] border-red-600/20 hover:border-red-600/40 hover:bg-[#1a1a1a]'
+                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
                 }`}
               >
                 <div
